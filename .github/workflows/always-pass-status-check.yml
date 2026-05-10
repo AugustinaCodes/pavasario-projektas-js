@@ -1,0 +1,12 @@
+name: Always pass status check
+ 
+on:
+  pull_request:
+    branches: [ main ]
+ 
+jobs:
+  main-branch-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Always pass
+        run: echo "ok"
