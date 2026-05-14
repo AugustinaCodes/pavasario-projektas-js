@@ -21,9 +21,7 @@ const validate = (schema) => {
                 query: req.query,
             });
 
-            req.body = validatedData.body || req.body;
-            req.params = validatedData.params || req.params;
-            req.query = validatedData.query || req.query;
+            req.validated = validatedData;
 
             next();
         } catch (error) {
