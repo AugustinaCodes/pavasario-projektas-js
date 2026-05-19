@@ -35,6 +35,7 @@ services:
     volumes:
       - fitbook_postgres_data:/var/lib/postgresql/data
       - ./backend/database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./backend/database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
     restart: unless-stopped
 
   pgadmin:
