@@ -54,11 +54,7 @@ This starts a PostgreSQL container in the background.
 docker ps
 ```
 
-You should see a container named:
-
-```txt
-fitbook_postgres
-```
+You should see the Compose services running under the project for this repo. The database service is `db`.
 
 ### Database Credentials
 
@@ -67,19 +63,19 @@ The local PostgreSQL database is configured with:
 ```env
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=fitbook_user
-DB_PASSWORD=fitbook_password
-DB_NAME=fitbook_db
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=fitbook
 ```
 
 These values should match the backend `.env` file.
 
 ### Connect to PostgreSQL Manually
 
-To open the PostgreSQL CLI inside the Docker container, run:
+To open the PostgreSQL CLI inside the database service, run:
 
 ```bash
-docker exec -it fitbook_postgres psql -U fitbook_user -d fitbook_db
+docker compose exec db psql -U postgres -d fitbook
 ```
 
 Inside `psql`, you can confirm the connection with:
@@ -170,5 +166,5 @@ docker compose down
 docker ps
 
 # Open PostgreSQL CLI
-docker exec -it fitbook_postgres psql -U fitbook_user -d fitbook_db
+docker compose exec db psql -U postgres -d fitbook
 ```
