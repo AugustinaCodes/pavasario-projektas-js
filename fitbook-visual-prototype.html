@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FitBook Visual Prototype</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0f14;
+        --panel: #111820;
+        --panel-2: #151d24;
+        --line: rgba(255, 255, 255, 0.1);
+        --muted: #9ca3af;
+        --text: #ffffff;
+        --emerald: #34d399;
+        --emerald-strong: #10d0a0;
+        --sky: #7dd3fc;
+        --amber: #fde68a;
+        --rose: #fecdd3;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      .shell {
+        width: min(1280px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 28px 0 40px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .brand-kicker {
+        margin: 0 0 6px;
+        color: var(--emerald);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 0;
+        font-size: clamp(26px, 3vw, 38px);
+      }
+
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 6px;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .tab {
+        border: 0;
+        border-radius: 999px;
+        padding: 11px 16px;
+        background: transparent;
+        color: #d4d4d8;
+        font-weight: 750;
+        cursor: pointer;
+      }
+
+      .tab.active {
+        background: var(--emerald);
+        color: #07100d;
+      }
+
+      .view {
+        display: none;
+        padding-top: 28px;
+      }
+
+      .view.active {
+        display: block;
+      }
+
+      .grid {
+        display: grid;
+        gap: 24px;
+      }
+
+      .dashboard-grid {
+        grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.95fr);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+        padding: 32px;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .eyebrow {
+        margin-bottom: 14px;
+        color: var(--emerald);
+        font-weight: 750;
+      }
+
+      .hero h2,
+      .auth-copy h2 {
+        max-width: 680px;
+        margin-bottom: 28px;
+        font-size: clamp(38px, 5vw, 64px);
+        line-height: 1.02;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .btn {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 12px 18px;
+        background: transparent;
+        color: var(--text);
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .btn.primary {
+        border-color: transparent;
+        background: var(--emerald-strong);
+        color: #07100d;
+      }
+
+      .btn.light {
+        background: #ffffff;
+        color: #111827;
+      }
+
+      .btn.danger {
+        border-color: rgba(254, 205, 211, 0.35);
+        color: var(--rose);
+      }
+
+      .calendar,
+      .panel,
+      .card,
+      .metric,
+      .auth-card {
+        border: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .calendar,
+      .panel,
+      .auth-card {
+        border-radius: 28px;
+        padding: 22px;
+      }
+
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .calendar-grid span {
+        border-radius: 16px;
+        padding: 12px 0;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .calendar-grid .day {
+        background: transparent;
+        padding: 0 0 4px;
+      }
+
+      .calendar-grid .selected {
+        background: var(--emerald);
+        color: #07100d;
+        font-weight: 900;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 20px;
+        margin: 28px 0 16px;
+      }
+
+      .section-head h2,
+      .panel h2 {
+        margin-bottom: 6px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        border-radius: 26px;
+        padding: 22px;
+      }
+
+      .card-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 18px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 6px 12px;
+        background: rgba(125, 211, 252, 0.1);
+        color: var(--sky);
+        font-size: 13px;
+        font-weight: 850;
+      }
+
+      .price {
+        color: var(--emerald);
+        font-size: 25px;
+        font-weight: 850;
+        white-space: nowrap;
+      }
+
+      .sidebar {
+        display: grid;
+        gap: 24px;
+      }
+
+      .booking-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .booking-row,
+      .note {
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .booking-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 16px;
+      }
+
+      .booking-row h3 {
+        margin-bottom: 6px;
+      }
+
+      .status {
+        border: 1px solid currentColor;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 900;
+        text-transform: capitalize;
+      }
+
+      .pending {
+        color: var(--amber);
+        background: rgba(253, 230, 138, 0.1);
+      }
+
+      .confirmed {
+        color: #a7f3d0;
+        background: rgba(16, 185, 129, 0.12);
+      }
+
+      .completed {
+        color: #bae6fd;
+        background: rgba(125, 211, 252, 0.12);
+      }
+
+      .cancelled {
+        color: var(--rose);
+        background: rgba(251, 113, 133, 0.12);
+      }
+
+      label {
+        display: block;
+        margin-bottom: 14px;
+        color: #d4d4d8;
+        font-weight: 750;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        margin-top: 8px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        outline: none;
+      }
+
+      textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .metric {
+        border-radius: 26px;
+        padding: 22px;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 12px;
+        font-size: 36px;
+      }
+
+      .wide-panel {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--panel);
+      }
+
+      .wide-panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 24px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .booking-cards {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        padding: 24px;
+      }
+
+      .note {
+        margin: 16px 0;
+        padding: 16px;
+        color: #d4d4d8;
+      }
+
+      table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+        text-align: left;
+      }
+
+      th,
+      td {
+        padding: 18px 22px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      th {
+        color: var(--muted);
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      .auth-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 420px;
+        gap: 28px;
+        align-items: center;
+      }
+
+      .auth-copy {
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 38px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      @media (max-width: 980px) {
+        .topbar,
+        .hero,
+        .dashboard-grid,
+        .auth-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .cards,
+        .booking-cards,
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="brand-kicker">FitBook</p>
+          <h1>Training bookings dashboard</h1>
+        </div>
+
+        <nav class="tabs" aria-label="Prototype views">
+          <button class="tab active" data-view="sessions">Sessions</button>
+          <button class="tab" data-view="bookings">My bookings</button>
+          <button class="tab" data-view="admin">Admin panel</button>
+          <button class="tab" data-view="login">Login</button>
+          <button class="tab" data-view="register">Register</button>
+        </nav>
+      </header>
+
+      <section id="sessions" class="view active">
+        <div class="grid dashboard-grid">
+          <div>
+            <section class="hero">
+              <div>
+                <p class="eyebrow">Good evening, Lina</p>
+                <h2>Book your next training session without the back-and-forth.</h2>
+                <div class="actions">
+                  <button class="btn light">Book a session</button>
+                  <button class="btn">View schedule</button>
+                </div>
+              </div>
+              <aside class="calendar">
+                <div class="booking-row" style="margin-bottom: 18px">
+                  <div>
+                    <p class="muted">Next booking</p>
+                    <h3>Personal Training</h3>
+                  </div>
+                  <span class="pill" style="background: var(--emerald); color: #07100d">10:00</span>
+                </div>
+                <div class="calendar-grid">
+                  <span class="day">M</span><span class="day">T</span><span class="day">W</span><span class="day">T</span><span class="day">F</span><span class="day">S</span><span class="day">S</span>
+                  <span>1</span><span class="selected">2</span><span>3</span><span>4</span><span class="selected">5</span><span>6</span><span>7</span>
+                  <span>8</span><span>9</span><span>10</span><span class="selected">11</span><span>12</span><span>13</span><span>14</span>
+                </div>
+              </aside>
+            </section>
+
+            <div class="section-head">
+              <div>
+                <h2>Available sessions</h2>
+                <p class="muted">Based on the sessions seeded in your database.</p>
+              </div>
+              <button class="btn">Filter</button>
+            </div>
+
+            <div class="cards">
+              <article class="card"><div class="card-top"><div><span class="pill">Focused</span><h3>Personal Training</h3></div><div class="price">EUR 40.00</div></div><p class="muted">One-on-one coaching focused on goals, technique and progress.</p><div class="actions"><span class="muted">60 min</span><button class="btn primary">Book</button></div></article>
+              <article class="card"><div class="card-top"><div><span class="pill">Strong</span><h3>Strength Training</h3></div><div class="price">EUR 35.00</div></div><p class="muted">Structured workout for building muscle, form and overall power.</p><div class="actions"><span class="muted">60 min</span><button class="btn primary">Book</button></div></article>
+              <article class="card"><div class="card-top"><div><span class="pill">Guided</span><h3>Weight Loss Consultation</h3></div><div class="price">EUR 30.00</div></div><p class="muted">Training direction, goal setting and basic nutrition guidance.</p><div class="actions"><span class="muted">45 min</span><button class="btn primary">Book</button></div></article>
+              <article class="card"><div class="card-top"><div><span class="pill">Recovery</span><h3>Mobility and Stretching</h3></div><div class="price">EUR 20.00</div></div><p class="muted">Low-intensity mobility, flexibility, posture and recovery session.</p><div class="actions"><span class="muted">30 min</span><button class="btn primary">Book</button></div></article>
+            </div>
+          </div>
+
+          <aside class="sidebar">
+            <section class="panel">
+              <h2>My bookings</h2>
+              <p class="muted">Upcoming user view</p>
+              <div class="booking-list">
+                <div class="booking-row"><div><h3>Personal Training</h3><p class="muted">2026-06-01 at 10:00</p></div><span class="status pending">Pending</span></div>
+                <div class="booking-row"><div><h3>Strength Training</h3><p class="muted">2026-06-01 at 12:00</p></div><span class="status confirmed">Confirmed</span></div>
+                <div class="booking-row"><div><h3>Mobility and Stretching</h3><p class="muted">2026-06-04 at 16:00</p></div><span class="status confirmed">Confirmed</span></div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <h2>Booking form</h2>
+              <p class="muted">Visual preview for creating a new booking.</p>
+              <label>Session<input value="Personal Training" /></label>
+              <div class="form-row"><label>Date<input value="2026-06-01" /></label><label>Time<input value="10:00" /></label></div>
+              <label>Notes<textarea>Focus on technique and posture.</textarea></label>
+              <button class="btn primary" style="width: 100%">Confirm booking</button>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section id="bookings" class="view">
+        <div class="metrics">
+          <div class="metric"><span class="muted">Total bookings</span><strong>5</strong></div>
+          <div class="metric"><span class="muted">Pending</span><strong style="color: var(--amber)">1</strong></div>
+          <div class="metric"><span class="muted">Confirmed</span><strong style="color: #a7f3d0">2</strong></div>
+          <div class="metric"><span class="muted">Completed</span><strong style="color: var(--sky)">1</strong></div>
+        </div>
+
+        <section class="wide-panel">
+          <div class="wide-panel-head">
+            <div><h2>My bookings</h2><p class="muted">Track upcoming training sessions and cancellation status.</p></div>
+            <button class="btn primary">New booking</button>
+          </div>
+          <div class="booking-cards">
+            <article class="card"><div class="booking-row"><div><h3>Personal Training</h3><p class="muted">2026-06-01 at 10:00</p></div><span class="status pending">Pending</span></div><p class="note">First personal training session.</p><button class="btn danger">Cancel</button></article>
+            <article class="card"><div class="booking-row"><div><h3>Strength Training</h3><p class="muted">2026-06-01 at 12:00</p></div><span class="status confirmed">Confirmed</span></div><p class="note">Focus on strength basics.</p><button class="btn danger">Cancel</button></article>
+            <article class="card"><div class="booking-row"><div><h3>Weight Loss Consultation</h3><p class="muted">2026-06-02 at 09:30</p></div><span class="status completed">Completed</span></div><p class="note">Weight loss consultation completed.</p><button class="btn danger">Cancel</button></article>
+            <article class="card"><div class="booking-row"><div><h3>Beginner Gym Introduction</h3><p class="muted">2026-06-03 at 14:00</p></div><span class="status cancelled">Cancelled</span></div><p class="note">User cancelled beginner introduction session.</p><button class="btn danger">Cancel</button></article>
+          </div>
+        </section>
+      </section>
+
+      <section id="admin" class="view">
+        <div class="metrics">
+          <div class="metric"><span class="muted">Users</span><strong>5</strong></div>
+          <div class="metric"><span class="muted">Sessions</span><strong style="color: var(--sky)">5</strong></div>
+          <div class="metric"><span class="muted">Pending</span><strong style="color: var(--amber)">1</strong></div>
+          <div class="metric"><span class="muted">Revenue</span><strong style="color: #a7f3d0">EUR 150</strong></div>
+        </div>
+
+        <section class="wide-panel">
+          <div class="wide-panel-head">
+            <div><h2>Admin panel</h2><p class="muted">Review bookings, confirm sessions and keep the schedule clean.</p></div>
+            <div class="actions"><button class="btn">Export</button><button class="btn primary">Add session</button></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Client</th><th>Session</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr><td><strong>John Smith</strong></td><td>Personal Training</td><td>2026-06-01</td><td>10:00</td><td><span class="status pending">Pending</span></td><td><button class="btn primary">Confirm</button> <button class="btn danger">Cancel</button></td></tr>
+                <tr><td><strong>Emily Johnson</strong></td><td>Strength Training</td><td>2026-06-01</td><td>12:00</td><td><span class="status confirmed">Confirmed</span></td><td><button class="btn">Complete</button> <button class="btn danger">Cancel</button></td></tr>
+                <tr><td><strong>Michael Brown</strong></td><td>Weight Loss Consultation</td><td>2026-06-02</td><td>09:30</td><td><span class="status completed">Completed</span></td><td><button class="btn">Review</button></td></tr>
+                <tr><td><strong>Sarah Davis</strong></td><td>Beginner Gym Introduction</td><td>2026-06-03</td><td>14:00</td><td><span class="status cancelled">Cancelled</span></td><td><button class="btn">Review</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="login" class="view">
+        <div class="auth-grid">
+          <section class="auth-copy">
+            <p class="brand-kicker">Welcome back</p>
+            <h2>Log in to manage your training schedule.</h2>
+            <p class="muted">Use this screen for JWT login later. For now it is a visual prototype.</p>
+          </section>
+          <section class="auth-card">
+            <label>Email<input value="john.smith@example.com" /></label>
+            <label>Password<input type="password" value="Password123!" /></label>
+            <button class="btn primary" style="width: 100%">Login</button>
+          </section>
+        </div>
+      </section>
+
+      <section id="register" class="view">
+        <div class="auth-grid">
+          <section class="auth-copy">
+            <p class="brand-kicker">Create account</p>
+            <h2>Start booking workouts with FitBook.</h2>
+            <p class="muted">This matches the users table: name, email, password and user role.</p>
+          </section>
+          <section class="auth-card">
+            <label>Name<input value="Lina User" /></label>
+            <label>Email<input value="lina@example.com" /></label>
+            <label>Password<input type="password" value="Password123!" /></label>
+            <label>Confirm password<input type="password" value="Password123!" /></label>
+            <button class="btn primary" style="width: 100%">Create account</button>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const tabs = document.querySelectorAll(".tab");
+      const views = document.querySelectorAll(".view");
+
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          tabs.forEach((item) => item.classList.remove("active"));
+          views.forEach((view) => view.classList.remove("active"));
+          tab.classList.add("active");
+          document.getElementById(tab.dataset.view).classList.add("active");
+        });
+      });
+    </script>
+  </body>
+</html>
