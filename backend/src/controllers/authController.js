@@ -50,7 +50,22 @@ const login = catchAsync(async (req, res, next) => {
     createSendToken(safeUser, 200, res);
 });
 
+const logout = (req, res) => {
+    res.cookie("jwt", "", {
+        expires: new Date(Date.now() + 1000),
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
+    });
+
+    res.status(200).json({
+        status: "success",
+        message: "Logged out successfully",
+    });
+};
+
 module.exports = {
     register,
     login,
+    logout,
 };
