@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const errorHandler = require("./middleware/errorHandler");
 const catchAsync = require("./utils/catchAsync");
 const sessionRoutes = require("./routes/sessionRoutes");
+const authRoutes = require("./routes/authRoutes");
 const { testDatabaseConnection } = require("./config/db");
 
 const app = express();
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/sessions", sessionRoutes);
+app.use("/api/auth", authRoutes);
 
 app.get(
   "/api/health",
