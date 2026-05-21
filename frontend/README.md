@@ -133,7 +133,7 @@ This file is used as a design reference for FitBook pages and does not require t
 To open it locally from the project root, open the file directly in a browser or use:
 
 ```bash
-open fitbook-visual-prototype.html
+start fitbook-visual-prototype.html
 ```
 
 The prototype includes visual references for:
