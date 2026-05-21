@@ -153,6 +153,21 @@ Expected response:
 }
 ```
 
+### Swagger API Documentation
+
+After starting the backend, Swagger UI is available at:
+
+```txt
+http://localhost:3000/api/docs
+```
+
+If running the project with Docker Compose and backend dependencies have changed,
+rebuild the services:
+
+```bash
+docker compose up -d --build
+```
+
 ## Useful Docker Commands
 
 ```bash
