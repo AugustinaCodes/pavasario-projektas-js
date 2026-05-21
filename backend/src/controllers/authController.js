@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs");
 const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
 const { createUser, findUserByEmail } = require("../models/userModel");
@@ -22,6 +23,34 @@ const register = catchAsync(async (req, res, next) => {
     createSendToken(newUser, 201, res);
 });
 
+const login = catchAsync(async (req, res, next) => {
+    const { email, password } = req.validated.body;
+
+    const user = await findUserByEmail(email);
+
+    if (!user) {
+        throw new AppError("Invalid email or password", 401);
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordCorrect) {
+        throw new AppError("Invalid email or password", 401);
+    }
+
+    const safeUser = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+    };
+
+    createSendToken(safeUser, 200, res);
+});
+
 module.exports = {
     register,
+    login,
 };
