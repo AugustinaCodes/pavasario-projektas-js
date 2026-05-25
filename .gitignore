@@ -1,0 +1,12 @@
+# Local MCP / Jira configuration
+.mcp/
+.vscode/mcp.json
+mcp.json
+
+# Environment files
+.env
+.env.local
+*.env
+
+# OS
+.DS_Store
