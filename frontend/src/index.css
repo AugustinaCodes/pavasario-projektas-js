@@ -72,6 +72,26 @@
     @apply text-fit-muted;
   }
 
+  .fit-navbar {
+    @apply flex flex-col gap-6 border-b border-fit-border pb-6 lg:flex-row lg:items-center lg:justify-between;
+  }
+
+  .fit-brand-kicker {
+    @apply mb-2 text-sm font-extrabold uppercase tracking-[0.22em] text-fit-primary;
+  }
+
+  .fit-nav-tabs {
+    @apply flex w-full flex-wrap gap-2 rounded-fit-lg border border-fit-border bg-white/[0.04] p-1.5 sm:w-auto;
+  }
+
+  .fit-nav-tab {
+    @apply rounded-full border-0 bg-transparent px-4 py-2.5 text-sm font-bold text-zinc-300 transition hover:bg-fit-primary hover:text-fit-bg;
+  }
+
+  .fit-nav-tab-active {
+    @apply bg-fit-primary text-fit-bg hover:bg-fit-primary-strong;
+  }
+
   .fit-status {
     @apply rounded-full border px-3 py-1 text-xs font-bold capitalize;
   }
@@ -92,4 +112,3 @@
     @apply border-fit-rose/30 bg-fit-rose/10 text-fit-rose;
   }
 }
-
