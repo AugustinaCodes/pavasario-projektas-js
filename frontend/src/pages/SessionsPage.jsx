@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import Navbar from "../components/Navbar";
 import SessionCard from "../components/SessionCard";
 import useSessionStore from "../store/useSessionStore";
 
@@ -12,11 +13,10 @@ function SessionPage() {
   return (
     <main className="fit-page">
       <div className="mx-auto w-full max-w-6xl px-5 py-10">
-        <header className="mb-8">
-          <p className="mb-2 text-sm font-bold uppercase text-fit-primary">
-            FitBook
-          </p>
-          <h1 className="text-4xl font-bold">Available training sessions</h1>
+        <Navbar />
+
+        <header className="my-8">
+          <h2 className="text-4xl font-bold">Available training sessions</h2>
           <p className="mt-3 fit-text-muted">
             Choose a session and book your next workout.
           </p>
