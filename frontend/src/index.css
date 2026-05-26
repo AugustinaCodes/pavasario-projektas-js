@@ -85,7 +85,7 @@
   }
 
   .fit-nav-tab {
-    @apply rounded-full border-0 bg-transparent px-4 py-2.5 text-sm font-bold text-zinc-300 transition hover:bg-fit-primary hover:text-fit-bg;
+    @apply cursor-pointer rounded-full border-0 bg-transparent px-4 py-2.5 text-sm font-bold text-zinc-300 transition hover:bg-fit-primary hover:text-fit-bg;
   }
 
   .fit-nav-tab-active {
