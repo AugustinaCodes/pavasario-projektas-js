@@ -6,6 +6,7 @@ const errorHandler = require("./middleware/errorHandler");
 const catchAsync = require("./utils/catchAsync");
 const sessionRoutes = require("./routes/sessionRoutes");
 const authRoutes = require("./routes/authRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
 const { testDatabaseConnection } = require("./config/db");
 
 const swaggerUi = require("swagger-ui-express");
@@ -25,6 +26,7 @@ app.use(cookieParser());
 
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+app.use("/api/bookings", bookingRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/auth", authRoutes);
 
