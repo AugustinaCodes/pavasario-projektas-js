@@ -2,6 +2,24 @@ import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
 
+const getFieldErrors = (error) => {
+  const fieldErrors = {};
+
+  if (!error?.errors?.length) {
+    return fieldErrors;
+  }
+
+  error.errors.forEach((item) => {
+    const field = item.field?.replace("body.", "");
+
+    if (field) {
+      fieldErrors[field] = item.message;
+    }
+  });
+
+  return fieldErrors;
+};
+
 function RegisterPage() {
   const navigate = useNavigate();
   const register = useAuthStore((state) => state.register);
@@ -17,6 +35,8 @@ function RegisterPage() {
   });
 
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
+
+  const fieldErrors = getFieldErrors(error);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -40,15 +60,20 @@ function RegisterPage() {
     }
 
     try {
-      const { confirmPassword, ...payload } = formData;
-      const user = await register(payload);
+  const payload = {
+    name: formData.name,
+    email: formData.email,
+    password: formData.password,
+  };
 
-      if (user) {
-        navigate("/dashboard", { replace: true });
-      }
-    } catch {
-      // The store already saves the backend error state.
-    }
+  const user = await register(payload);
+
+  if (user) {
+    navigate("/dashboard", { replace: true });
+  }
+} catch {
+  // The store already saves the backend error state.
+}
   };
 
   if (isAuthenticated) {
@@ -92,11 +117,13 @@ function RegisterPage() {
               </p>
             </div>
 
-            <form className="grid gap-4" onSubmit={handleSubmit}>
+            <form noValidate className="grid gap-4" onSubmit={handleSubmit}>
               <label className="grid gap-2 text-sm font-semibold">
                 Name
                 <input
-                  className="fit-input"
+                  className={`fit-input ${
+                    fieldErrors.name ? "border-fit-rose" : ""
+                  }`}
                   name="name"
                   type="text"
                   autoComplete="name"
@@ -105,12 +132,19 @@ function RegisterPage() {
                   placeholder="Lina User"
                   required
                 />
+                {fieldErrors.name ? (
+                  <p className="text-xs leading-5 text-fit-rose">
+                    {fieldErrors.name}
+                  </p>
+                ) : null}
               </label>
 
               <label className="grid gap-2 text-sm font-semibold">
                 Email
                 <input
-                  className="fit-input"
+                  className={`fit-input ${
+                    fieldErrors.email ? "border-fit-rose" : ""
+                  }`}
                   name="email"
                   type="email"
                   autoComplete="email"
@@ -119,12 +153,19 @@ function RegisterPage() {
                   placeholder="lina@example.com"
                   required
                 />
+                {fieldErrors.email ? (
+                  <p className="text-xs leading-5 text-fit-rose">
+                    {fieldErrors.email}
+                  </p>
+                ) : null}
               </label>
 
               <label className="grid gap-2 text-sm font-semibold">
                 Password
                 <input
-                  className="fit-input"
+                  className={`fit-input ${
+                    fieldErrors.password ? "border-fit-rose" : ""
+                  }`}
                   name="password"
                   type="password"
                   autoComplete="new-password"
@@ -133,12 +174,25 @@ function RegisterPage() {
                   placeholder="Password123!"
                   required
                 />
+                {fieldErrors.password ? (
+                  <p className="text-xs leading-5 text-fit-rose">
+                    {fieldErrors.password}
+                  </p>
+                ) : (
+                  <p className="text-xs leading-5 fit-text-muted">
+                    Password must be 8-64 characters and include at least one
+                    uppercase letter, one lowercase letter, one number and one
+                    special character.
+                  </p>
+                )}
               </label>
 
               <label className="grid gap-2 text-sm font-semibold">
                 Confirm password
                 <input
-                  className="fit-input"
+                  className={`fit-input ${
+                    confirmPasswordError ? "border-fit-amber" : ""
+                  }`}
                   name="confirmPassword"
                   type="password"
                   autoComplete="new-password"
@@ -147,32 +201,16 @@ function RegisterPage() {
                   placeholder="Password123!"
                   required
                 />
+                {confirmPasswordError ? (
+                  <p className="text-xs leading-5 text-fit-amber">
+                    {confirmPasswordError}
+                  </p>
+                ) : null}
               </label>
 
-              <p className="text-xs leading-5 fit-text-muted">
-                Password must include at least one uppercase letter, one
-                lowercase letter, one number and one special character.
-              </p>
-
-              {confirmPasswordError ? (
-                <div className="rounded-fit-lg border border-fit-amber/30 bg-fit-amber/10 p-4 text-sm text-fit-amber">
-                  {confirmPasswordError}
-                </div>
-              ) : null}
-
-              {error ? (
-                <div className="grid gap-2 rounded-fit-lg border border-fit-rose/30 bg-fit-rose/10 p-4 text-sm text-fit-rose">
+              {error?.message && !error?.errors?.length ? (
+                <div className="rounded-fit-lg border border-fit-rose/30 bg-fit-rose/10 p-4 text-sm text-fit-rose">
                   <p className="font-bold">{error.message}</p>
-                  {error.errors?.length ? (
-                    <ul className="grid gap-1">
-                      {error.errors.map((item) => (
-                        <li key={`${item.field}-${item.message}`}>
-                          {item.field ? `${item.field}: ` : ""}
-                          {item.message}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
                 </div>
               ) : null}
 
