@@ -6,10 +6,14 @@ const passwordRegex =
 const registerSchema = z.object({
   body: z.object({
     name: z
-      .string()
-      .trim()
-      .min(2, "Name must be at least 2 characters")
-      .max(50, "Name cannot be longer than 50 characters"),
+  .string()
+  .trim()
+  .min(2, "Name must be at least 2 characters")
+  .max(50, "Name cannot be longer than 50 characters")
+  .regex(
+    /^[A-Za-zÀ-ž\s'-]+$/,
+    "Name can only contain letters, spaces, hyphens and apostrophes"
+  ),
 
     email: z
       .string()
