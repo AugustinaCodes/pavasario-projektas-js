@@ -2,6 +2,27 @@ import { useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/useAuthStore";
 
+const getFieldErrors = (error) => {
+  const fieldErrors = {};
+
+  if (!Array.isArray(error?.errors)) {
+    return fieldErrors;
+  }
+
+  error.errors.forEach((item) => {
+    const field = item.field
+      ?.replace("body.", "")
+      ?.replace("params.", "")
+      ?.replace("query.", "");
+
+    if (field) {
+      fieldErrors[field] = item.message;
+    }
+  });
+
+  return fieldErrors;
+};
+
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,6 +35,9 @@ function LoginPage() {
     email: "",
     password: "",
   });
+
+  const fieldErrors = getFieldErrors(error);
+  const hasFieldErrors = Object.keys(fieldErrors).length > 0;
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -81,11 +105,13 @@ function LoginPage() {
               </p>
             </div>
 
-            <form className="grid gap-4" onSubmit={handleSubmit}>
+            <form noValidate className="grid gap-4" onSubmit={handleSubmit}>
               <label className="grid gap-2 text-sm font-semibold">
                 Email
                 <input
-                  className="fit-input"
+                  className={`fit-input ${
+                    fieldErrors.email ? "border-fit-rose" : ""
+                  }`}
                   name="email"
                   type="email"
                   autoComplete="email"
@@ -94,12 +120,19 @@ function LoginPage() {
                   placeholder="john.smith@example.com"
                   required
                 />
+                {fieldErrors.email ? (
+                  <p className="text-xs leading-5 text-fit-rose">
+                    {fieldErrors.email}
+                  </p>
+                ) : null}
               </label>
 
               <label className="grid gap-2 text-sm font-semibold">
                 Password
                 <input
-                  className="fit-input"
+                  className={`fit-input ${
+                    fieldErrors.password ? "border-fit-rose" : ""
+                  }`}
                   name="password"
                   type="password"
                   autoComplete="current-password"
@@ -108,21 +141,16 @@ function LoginPage() {
                   placeholder="••••••••"
                   required
                 />
+                {fieldErrors.password ? (
+                  <p className="text-xs leading-5 text-fit-rose">
+                    {fieldErrors.password}
+                  </p>
+                ) : null}
               </label>
 
-              {error ? (
-                <div className="grid gap-2 rounded-fit-lg border border-fit-rose/30 bg-fit-rose/10 p-4 text-sm text-fit-rose">
+              {error?.message && !hasFieldErrors ? (
+                <div className="rounded-fit-lg border border-fit-rose/30 bg-fit-rose/10 p-4 text-sm text-fit-rose">
                   <p className="font-bold">{error.message}</p>
-                  {error.errors?.length ? (
-                    <ul className="grid gap-1">
-                      {error.errors.map((item) => (
-                        <li key={`${item.field}-${item.message}`}>
-                          {item.field ? `${item.field}: ` : ""}
-                          {item.message}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
                 </div>
               ) : null}
 

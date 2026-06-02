@@ -6,8 +6,17 @@ import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import SessionsPage from "./pages/SessionsPage";
+import { useEffect } from "react";
+import useAuthStore from "./store/useAuthStore";
 
 function App() {
+
+  const checkAuth = useAuthStore((state) => state.checkAuth);
+
+useEffect(() => {
+  checkAuth();
+}, [checkAuth]);
+
   return (
     <div className="bg-fit-bg text-fit-text font-fit">
       <div className="mx-auto w-full max-w-6xl px-5 py-10">

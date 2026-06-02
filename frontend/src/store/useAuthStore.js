@@ -1,8 +1,14 @@
 import { create } from "zustand";
 import api from "../api/axios";
 
-const getErrorMessage = (error) =>
-  error.response?.data?.message || "Something went wrong";
+const getErrorData = (error) => {
+  const data = error.response?.data;
+
+  return {
+    message: data?.message || "Something went wrong",
+    errors: Array.isArray(data?.errors) ? data.errors : [],
+  };
+};
 
 const useAuthStore = create((set) => ({
   user: null,
@@ -17,14 +23,20 @@ const useAuthStore = create((set) => ({
       const response = await api.get("/auth/me");
       const user = response.data.data.user;
 
-      set({ user, isAuthenticated: true, isLoading: false });
+      set({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+
       return user;
     } catch (error) {
       set({
         user: null,
         isAuthenticated: false,
         isLoading: false,
-        error: getErrorMessage(error),
+        error: getErrorData(error),
       });
 
       return null;
@@ -38,11 +50,23 @@ const useAuthStore = create((set) => ({
       const response = await api.post("/auth/register", credentials);
       const user = response.data.data.user;
 
-      set({ user, isAuthenticated: true, isLoading: false });
+      set({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+
       return user;
     } catch (error) {
-      set({ isLoading: false, error: getErrorMessage(error) });
-      throw error;
+      const errorData = getErrorData(error);
+
+      set({
+        isLoading: false,
+        error: errorData,
+      });
+
+      throw new Error(errorData.message, { cause: error });
     }
   },
 
@@ -53,11 +77,23 @@ const useAuthStore = create((set) => ({
       const response = await api.post("/auth/login", credentials);
       const user = response.data.data.user;
 
-      set({ user, isAuthenticated: true, isLoading: false });
+      set({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+
       return user;
     } catch (error) {
-      set({ isLoading: false, error: getErrorMessage(error) });
-      throw error;
+      const errorData = getErrorData(error);
+
+      set({
+        isLoading: false,
+        error: errorData,
+      });
+
+      throw new Error(errorData.message, { cause: error });
     }
   },
 
@@ -66,19 +102,37 @@ const useAuthStore = create((set) => ({
 
     try {
       await api.post("/auth/logout");
-      set({ user: null, isAuthenticated: false, isLoading: false });
+
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
+      });
     } catch (error) {
-      set({ isLoading: false, error: getErrorMessage(error) });
-      throw error;
+      const errorData = getErrorData(error);
+
+      set({
+        isLoading: false,
+        error: errorData,
+      });
+
+      throw new Error(errorData.message, { cause: error });
     }
   },
 
   setUser: (user) => {
-    set({ user, isAuthenticated: Boolean(user) });
+    set({
+      user,
+      isAuthenticated: Boolean(user),
+    });
   },
 
   clearUser: () => {
-    set({ user: null, isAuthenticated: false });
+    set({
+      user: null,
+      isAuthenticated: false,
+    });
   },
 
   clearError: () => {
