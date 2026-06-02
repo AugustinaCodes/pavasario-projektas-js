@@ -1,33 +1,23 @@
 const express = require("express");
 
-const bookingController = require("../controllers/bookingController");
-const { createBookingSchema } = require("../schemas/bookingValidation");
-
-const { protect, restrictTo } = require("../middleware/authMiddleware");
 const validate = require("../middleware/validate");
+const { protect } = require("../middleware/authMiddleware");
+const {
+  createBookingSchema,
+  bookingIdParamSchema,
+} = require("../schemas/bookingSchemas");
+const {
+  fetchMyBookings,
+  createMyBooking,
+  cancelMyBooking,
+} = require("../controllers/bookingController");
 
 const router = express.Router();
 
 router.use(protect);
 
-router.get("/me", bookingController.getMyBookings);
-
-router.post(
-  "/",
-  validate(createBookingSchema),
-  bookingController.createBooking
-);
-
-router.patch("/:id/cancel", bookingController.cancelMyBooking);
-
-router.use(restrictTo("admin"));
-
-router.get("/", bookingController.getAllBookings);
-
-router.patch("/:id/confirm", bookingController.confirmBooking);
-
-router.patch("/:id/complete", bookingController.completeBooking);
-
-router.patch("/:id/admin-cancel", bookingController.cancelBookingAsAdmin);
+router.get("/me", fetchMyBookings);
+router.post("/", validate(createBookingSchema), createMyBooking);
+router.patch("/:id/cancel", validate(bookingIdParamSchema), cancelMyBooking);
 
 module.exports = router;

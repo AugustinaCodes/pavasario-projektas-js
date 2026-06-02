@@ -1,5 +1,76 @@
 const { sql } = require("../config/db");
 
+const bookingResponseSelect = sql`
+  SELECT
+    b.id,
+    b.user_id,
+    b.session_id,
+    s.title AS session_title,
+    b.booking_date::text AS booking_date,
+    b.booking_time::text AS booking_time,
+    b.status,
+    b.notes,
+    s.price,
+    b.created_at,
+    b.updated_at
+  FROM bookings b
+  JOIN sessions s ON s.id = b.session_id
+`;
+
+const getBookingsByUserId = async (userId) => {
+  return sql`
+    ${bookingResponseSelect}
+    WHERE b.user_id = ${userId}
+    ORDER BY b.booking_date ASC, b.booking_time ASC, b.id ASC
+  `;
+};
+
+const findBookingById = async (id) => {
+  const bookings = await sql`
+    SELECT
+      id,
+      user_id,
+      session_id,
+      booking_date::text AS booking_date,
+      booking_time::text AS booking_time,
+      status,
+      notes,
+      created_at,
+      updated_at
+    FROM bookings
+    WHERE id = ${id}
+  `;
+
+  return bookings[0] || null;
+};
+
+const findBookingSlot = async (sessionId, bookingDate, bookingTime) => {
+  const bookings = await sql`
+    SELECT
+      id,
+      user_id,
+      session_id,
+      booking_date::text AS booking_date,
+      booking_time::text AS booking_time,
+      status
+    FROM bookings
+    WHERE session_id = ${sessionId}
+      AND booking_date = ${bookingDate}
+      AND booking_time = ${bookingTime}
+  `;
+
+  return bookings[0] || null;
+};
+
+const getBookingResponseById = async (id) => {
+  const bookings = await sql`
+    ${bookingResponseSelect}
+    WHERE b.id = ${id}
+  `;
+
+  return bookings[0] || null;
+};
+
 const createBooking = async ({
   userId,
   sessionId,
@@ -22,105 +93,10 @@ const createBooking = async ({
       ${bookingTime},
       ${notes || null}
     )
-    RETURNING
-      id,
-      user_id,
-      session_id,
-      booking_date,
-      booking_time,
-      status,
-      notes,
-      created_at,
-      updated_at
+    RETURNING id
   `;
 
-  return bookings[0] || null;
-};
-
-const findMyBookings = async (userId) => {
-  return await sql`
-    SELECT
-      b.id,
-      b.user_id,
-      b.session_id,
-      b.booking_date,
-      b.booking_time,
-      b.status,
-      b.notes,
-      b.created_at,
-      b.updated_at,
-      s.title AS session_title,
-      s.description AS session_description,
-      s.duration AS session_duration,
-      s.price AS session_price
-    FROM bookings b
-    JOIN sessions s ON s.id = b.session_id
-    WHERE b.user_id = ${userId}
-    ORDER BY b.booking_date DESC, b.booking_time DESC
-  `;
-};
-
-const findAllBookings = async () => {
-  return await sql`
-    SELECT
-      b.id,
-      b.user_id,
-      b.session_id,
-      b.booking_date,
-      b.booking_time,
-      b.status,
-      b.notes,
-      b.created_at,
-      b.updated_at,
-      u.name AS user_name,
-      u.email AS user_email,
-      s.title AS session_title,
-      s.description AS session_description,
-      s.duration AS session_duration,
-      s.price AS session_price
-    FROM bookings b
-    JOIN users u ON u.id = b.user_id
-    JOIN sessions s ON s.id = b.session_id
-    ORDER BY b.booking_date DESC, b.booking_time DESC
-  `;
-};
-
-const findBookingById = async (bookingId) => {
-  const bookings = await sql`
-    SELECT
-      id,
-      user_id,
-      session_id,
-      booking_date,
-      booking_time,
-      status,
-      notes,
-      created_at,
-      updated_at
-    FROM bookings
-    WHERE id = ${bookingId}
-  `;
-
-  return bookings[0] || null;
-};
-
-const findBookingSlot = async ({ sessionId, bookingDate, bookingTime }) => {
-  const bookings = await sql`
-    SELECT
-      id,
-      user_id,
-      session_id,
-      booking_date,
-      booking_time,
-      status
-    FROM bookings
-    WHERE session_id = ${sessionId}
-      AND booking_date = ${bookingDate}
-      AND booking_time = ${bookingTime}
-      AND status != 'cancelled'
-  `;
-
-  return bookings[0] || null;
+  return getBookingResponseById(bookings[0].id);
 };
 
 const updateBookingStatus = async ({ bookingId, status }) => {
@@ -130,26 +106,39 @@ const updateBookingStatus = async ({ bookingId, status }) => {
       status = ${status},
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ${bookingId}
-    RETURNING
-      id,
-      user_id,
-      session_id,
-      booking_date,
-      booking_time,
-      status,
-      notes,
-      created_at,
-      updated_at
+    RETURNING id
   `;
 
-  return bookings[0] || null;
+  if (!bookings[0]) {
+    return null;
+  }
+
+  return getBookingResponseById(bookings[0].id);
+};
+
+const cancelBookingForUser = async ({ bookingId, userId }) => {
+  const bookings = await sql`
+    UPDATE bookings
+    SET
+      status = 'cancelled',
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${bookingId}
+      AND user_id = ${userId}
+    RETURNING id
+  `;
+
+  if (!bookings[0]) {
+    return null;
+  }
+
+  return getBookingResponseById(bookings[0].id);
 };
 
 module.exports = {
-  createBooking,
-  findMyBookings,
-  findAllBookings,
+  getBookingsByUserId,
   findBookingById,
   findBookingSlot,
+  createBooking,
   updateBookingStatus,
+  cancelBookingForUser,
 };
