@@ -27,13 +27,19 @@ function Navbar() {
   })?.label;
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      navigate("/login", { replace: true });
-    } catch {
-      // The auth store already records logout errors if the API call fails.
-    }
-  };
+  try {
+    const message = await logout();
+
+    navigate("/login", {
+      replace: true,
+      state: {
+        successMessage: message,
+      },
+    });
+  } catch {
+    // The auth store already records logout errors if the API call fails.
+  }
+};
 
   return (
     <header className="fit-navbar">
