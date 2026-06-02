@@ -14,6 +14,7 @@ const useAuthStore = create((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  hasCheckedAuth: false,
   error: null,
 
   checkAuth: async () => {
@@ -27,6 +28,7 @@ const useAuthStore = create((set) => ({
         user,
         isAuthenticated: true,
         isLoading: false,
+        hasCheckedAuth: true,
         error: null,
       });
 
@@ -36,6 +38,7 @@ const useAuthStore = create((set) => ({
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        hasCheckedAuth: true,
         error: getErrorData(error),
       });
 
