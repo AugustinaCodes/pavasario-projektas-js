@@ -1,4 +1,4 @@
-function SessionCard({ session }) {
+function SessionCard({ session, onBook }) {
   return (
     <article className="fit-card flex flex-col gap-4">
       <div className="flex items-start justify-between gap-4">
@@ -17,7 +17,7 @@ function SessionCard({ session }) {
             {session.duration_minutes} min
         </span>
 
-        <button className="fit-btn-primary" type="button">
+        <button className="fit-btn-primary" type="button" onClick={() => onBook(session)}>
             Book Session
         </button>
 
