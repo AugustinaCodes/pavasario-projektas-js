@@ -98,28 +98,33 @@ const useAuthStore = create((set) => ({
   },
 
   logout: async () => {
-    set({ isLoading: true, error: null });
+  set({ isLoading: true, error: null });
 
-    try {
-      await api.post("/auth/logout");
+  try {
+    const response = await api.post("/auth/logout");
 
-      set({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-      });
-    } catch (error) {
-      const errorData = getErrorData(error);
+    set({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+    });
 
-      set({
-        isLoading: false,
-        error: errorData,
-      });
+    return (
+      response.data?.message ||
+      "You have successfully logged out."
+    );
+  } catch (error) {
+    const errorData = getErrorData(error);
 
-      throw new Error(errorData.message, { cause: error });
-    }
-  },
+    set({
+      isLoading: false,
+      error: errorData,
+    });
+
+    throw new Error(errorData.message, { cause: error });
+  }
+},
 
   setUser: (user) => {
     set({

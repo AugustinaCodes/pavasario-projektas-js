@@ -30,6 +30,7 @@ function LoginPage() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isLoading = useAuthStore((state) => state.isLoading);
   const error = useAuthStore((state) => state.error);
+  const successMessage = location.state?.successMessage;
 
   const [formData, setFormData] = useState({
     email: "",
@@ -104,6 +105,12 @@ function LoginPage() {
                 Use the email and password connected to your FitBook profile.
               </p>
             </div>
+            
+            {successMessage ? (
+              <div className="mb-4 rounded-fit-lg border border-green-500/30 bg-green-500/10 p-4 text-sm text-green-400">
+                <p className="font-bold">{successMessage}</p>
+              </div>
+            ) : null}
 
             <form noValidate className="grid gap-4" onSubmit={handleSubmit}>
               <label className="grid gap-2 text-sm font-semibold">
