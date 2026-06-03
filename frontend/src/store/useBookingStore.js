@@ -6,8 +6,24 @@ const getErrorMessage = (error) =>
 
 const updateBookingInList = (bookings, updatedBooking) =>
   bookings.map((booking) =>
-    booking.id === updatedBooking.id ? updatedBooking : booking
+    String(booking.id) === String(updatedBooking.id) ? updatedBooking : booking
   );
+
+const getBookingFromResponse = (response) =>
+  response.data.data?.booking ||
+  response.data.booking ||
+  response.data.data ||
+  null;
+
+const getBookingsFromResponse = (response) => {
+  const bookings =
+    response.data.data?.bookings ||
+    response.data.bookings ||
+    response.data.data ||
+    [];
+
+  return Array.isArray(bookings) ? bookings : [];
+};
 
 const useBookingStore = create((set, get) => ({
   bookings: [],
@@ -23,7 +39,7 @@ const useBookingStore = create((set, get) => ({
       const response = await api.get("/bookings/me");
 
       set({
-        bookings: Array.isArray(response.data.data) ? response.data.data: [],
+        bookings: getBookingsFromResponse(response),
         isLoading: false,
       });
     } catch (error) {
@@ -40,7 +56,7 @@ const useBookingStore = create((set, get) => ({
     try {
       const response = await api.post("/bookings", bookingData);
 
-      const newBooking = response.data.data;
+      const newBooking = getBookingFromResponse(response);
 
       set({
         bookings: newBooking
@@ -68,7 +84,7 @@ const useBookingStore = create((set, get) => ({
     try {
       const response = await api.patch(`/bookings/${bookingId}/cancel`);
 
-      const updatedBooking = response.data.data;
+      const updatedBooking = getBookingFromResponse(response);
 
       set({
         bookings: updatedBooking
@@ -97,7 +113,7 @@ const useBookingStore = create((set, get) => ({
       const response = await api.get("/bookings");
 
       set({
-        bookings: response.data.data?.bookings || response.data.bookings || [],
+        bookings: getBookingsFromResponse(response),
         isLoading: false,
       });
     } catch (error) {
@@ -114,8 +130,7 @@ const useBookingStore = create((set, get) => ({
     try {
       const response = await api.patch(`/bookings/${bookingId}/confirm`);
 
-      const updatedBooking =
-        response.data.data?.booking || response.data.booking;
+      const updatedBooking = getBookingFromResponse(response);
 
       set({
         bookings: updatedBooking
@@ -143,8 +158,7 @@ const useBookingStore = create((set, get) => ({
     try {
       const response = await api.patch(`/bookings/${bookingId}/complete`);
 
-      const updatedBooking =
-        response.data.data?.booking || response.data.booking;
+      const updatedBooking = getBookingFromResponse(response);
 
       set({
         bookings: updatedBooking
@@ -172,8 +186,7 @@ const useBookingStore = create((set, get) => ({
     try {
       const response = await api.patch(`/bookings/${bookingId}/cancel`);
 
-      const updatedBooking =
-        response.data.data?.booking || response.data.booking;
+      const updatedBooking = getBookingFromResponse(response);
 
       set({
         bookings: updatedBooking

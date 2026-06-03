@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import AdminRoute from "./components/AdminRoute";
+import AdminPage from "./pages/AdminPage";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardPage from "./pages/DashboardPage";
@@ -32,19 +33,9 @@ useEffect(() => {
             <Route path="/dashboard" element={<DashboardPage />} />
           </Route>
 
-          <Route element={<AdminRoute />}>
-            <Route
-              path="/admin"
-              element={
-                <div className="fit-panel p-8">
-                  <h1 className="text-3xl font-bold">Admin area</h1>
-                  <p className="mt-3 fit-text-muted">
-                    Placeholder for future admin pages.
-                  </p>
-                </div>
-              }
-            />
-          </Route>
+         <Route element={<AdminRoute />}>
+  <Route path="/admin" element={<AdminPage />} />
+</Route>
 
           <Route path="*" element={<Navigate to="/sessions" replace />} />
         </Routes>
