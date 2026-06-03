@@ -23,7 +23,7 @@ const useBookingStore = create((set, get) => ({
       const response = await api.get("/bookings/me");
 
       set({
-        bookings: response.data.data?.bookings || response.data.bookings || [],
+        bookings: Array.isArray(response.data.data) ? response.data.data: [],
         isLoading: false,
       });
     } catch (error) {
@@ -40,7 +40,7 @@ const useBookingStore = create((set, get) => ({
     try {
       const response = await api.post("/bookings", bookingData);
 
-      const newBooking = response.data.data?.booking || response.data.booking;
+      const newBooking = response.data.data;
 
       set({
         bookings: newBooking
@@ -68,8 +68,7 @@ const useBookingStore = create((set, get) => ({
     try {
       const response = await api.patch(`/bookings/${bookingId}/cancel`);
 
-      const updatedBooking =
-        response.data.data?.booking || response.data.booking;
+      const updatedBooking = response.data.data;
 
       set({
         bookings: updatedBooking
