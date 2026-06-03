@@ -1,6 +1,7 @@
 const healthSwagger = require("../docs/health.swagger");
 const sessionsSwagger = require("../docs/sessions.swagger");
 const authSwagger = require("../docs/auth.swagger");
+const bookingSwagger = require("../docs/booking.swagger");
 
 const swaggerSpec = {
   openapi: "3.0.0",
@@ -28,11 +29,16 @@ const swaggerSpec = {
       name: "Auth",
       description: "Authentication endpoints",
     },
+    {
+  name: "Bookings",
+  description: "Booking management endpoints",
+},
   ],
   paths: {
     ...healthSwagger.paths,
     ...sessionsSwagger.paths,
     ...authSwagger.paths,
+    ...bookingSwagger.paths,
   },
   components: {
     securitySchemes: {
@@ -46,6 +52,7 @@ const swaggerSpec = {
       ...healthSwagger.schemas,
       ...sessionsSwagger.schemas,
       ...authSwagger.schemas,
+      ...bookingSwagger.schemas,
     },
   },
 };
