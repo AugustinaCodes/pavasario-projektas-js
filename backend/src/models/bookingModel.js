@@ -17,6 +17,33 @@ const bookingResponseSelect = sql`
   JOIN sessions s ON s.id = b.session_id
 `;
 
+const adminBookingResponseSelect = sql`
+  SELECT
+    b.id,
+    b.user_id,
+    u.name AS user_name,
+    u.email AS user_email,
+    b.session_id,
+    s.title AS session_title,
+    b.booking_date::text AS booking_date,
+    b.booking_time::text AS booking_time,
+    b.status,
+    b.notes,
+    s.price,
+    b.created_at,
+    b.updated_at
+  FROM bookings b
+  JOIN users u ON u.id = b.user_id
+  JOIN sessions s ON s.id = b.session_id
+`;
+
+const getAllBookings = async () => {
+  return sql`
+    ${adminBookingResponseSelect}
+    ORDER BY b.booking_date ASC, b.booking_time ASC, b.id ASC
+  `;
+};
+
 const getBookingsByUserId = async (userId) => {
   return sql`
     ${bookingResponseSelect}
@@ -71,6 +98,15 @@ const getBookingResponseById = async (id) => {
   return bookings[0] || null;
 };
 
+const getAdminBookingResponseById = async (id) => {
+  const bookings = await sql`
+    ${adminBookingResponseSelect}
+    WHERE b.id = ${id}
+  `;
+
+  return bookings[0] || null;
+};
+
 const createBooking = async ({
   userId,
   sessionId,
@@ -113,7 +149,7 @@ const updateBookingStatus = async ({ bookingId, status }) => {
     return null;
   }
 
-  return getBookingResponseById(bookings[0].id);
+  return getAdminBookingResponseById(bookings[0].id);
 };
 
 const cancelBookingForUser = async ({ bookingId, userId }) => {
@@ -135,6 +171,7 @@ const cancelBookingForUser = async ({ bookingId, userId }) => {
 };
 
 module.exports = {
+  getAllBookings,
   getBookingsByUserId,
   findBookingById,
   findBookingSlot,
