@@ -81,7 +81,7 @@ const bookingSwagger = {
       post: {
         summary: "Create a booking",
         description:
-          "Creates a booking for the authenticated user. Date and time are required, and the date cannot be in the past.",
+          "Creates a booking for the authenticated user. Individual sessions require a date and time. Group sessions require a scheduled session slot.",
         tags: ["Bookings"],
         security: [
           {
@@ -141,7 +141,7 @@ const bookingSwagger = {
           },
           409: {
             description:
-              "Booking already exists for this session, date and time",
+              "Booking already exists, the individual time is unavailable, or the group session is fully booked",
             content: {
               "application/json": {
                 schema: {
@@ -447,29 +447,52 @@ const bookingSwagger = {
     },
 
     CreateBookingRequest: {
-      type: "object",
-      required: ["session_id", "booking_date", "booking_time"],
-      properties: {
-        session_id: {
-          type: "integer",
-          example: 1,
+      oneOf: [
+        {
+          type: "object",
+          required: ["session_id", "booking_date", "booking_time"],
+          properties: {
+            session_id: {
+              type: "integer",
+              example: 1,
+            },
+            booking_date: {
+              type: "string",
+              format: "date",
+              example: "2026-06-23",
+            },
+            booking_time: {
+              type: "string",
+              example: "18:30",
+              description: "Booking time in HH:mm or HH:mm:ss format",
+            },
+            notes: {
+              type: "string",
+              maxLength: 1000,
+              example: "First personal training session.",
+            },
+          },
         },
-        booking_date: {
-          type: "string",
-          format: "date",
-          example: "2026-06-23",
+        {
+          type: "object",
+          required: ["session_id", "session_slot_id"],
+          properties: {
+            session_id: {
+              type: "integer",
+              example: 7,
+            },
+            session_slot_id: {
+              type: "integer",
+              example: 8,
+            },
+            notes: {
+              type: "string",
+              maxLength: 1000,
+              example: "Please reserve a place near the front.",
+            },
+          },
         },
-        booking_time: {
-          type: "string",
-          example: "18:30",
-          description: "Booking time in HH:mm or HH:mm:ss format",
-        },
-        notes: {
-          type: "string",
-          maxLength: 1000,
-          example: "First personal training session.",
-        },
-      },
+      ],
     },
 
     Booking: {
@@ -487,9 +510,19 @@ const bookingSwagger = {
           type: "integer",
           example: 1,
         },
+        session_slot_id: {
+          type: "integer",
+          nullable: true,
+          example: null,
+        },
         session_title: {
           type: "string",
           example: "Personal Training",
+        },
+        session_type: {
+          type: "string",
+          enum: ["individual", "group"],
+          example: "individual",
         },
         booking_date: {
           type: "string",

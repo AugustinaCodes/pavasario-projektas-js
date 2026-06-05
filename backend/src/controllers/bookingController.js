@@ -1,12 +1,10 @@
 const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
-const { getSessionById } = require("../models/sessionModel");
 const {
   getAllBookings,
   getBookingsByUserId,
   findBookingById,
-  findBookingSlot,
-  createBooking,
+  createBookingWithCapacity,
   cancelBookingForUser,
   updateBookingStatus,
 } = require("../models/bookingModel");
@@ -50,37 +48,71 @@ const fetchMyBookings = catchAsync(async (req, res) => {
 });
 
 const createMyBooking = catchAsync(async (req, res) => {
-  const { session_id, booking_date, booking_time, notes } = req.validated.body;
-
-  const session = await getSessionById(session_id);
-
-  if (!session) {
-    throw new AppError("Session not found", 404);
-  }
-
-  const existingBooking = await findBookingSlot(
-    req.user.id,
+  const {
     session_id,
+    session_slot_id,
     booking_date,
-    booking_time
-  );
-
-  if (existingBooking) {
-    throw new AppError(duplicateBookingMessage, 409);
-  }
+    booking_time,
+    notes,
+  } = req.validated.body;
 
   try {
-    const booking = await createBooking({
+    const result = await createBookingWithCapacity({
       userId: req.user.id,
       sessionId: session_id,
+      sessionSlotId: session_slot_id,
       bookingDate: booking_date,
       bookingTime: booking_time,
       notes,
     });
 
+    if (result.outcome === "session_not_found") {
+      throw new AppError("Session not found", 404);
+    }
+
+    if (result.outcome === "duplicate_booking") {
+      throw new AppError(duplicateBookingMessage, 409);
+    }
+
+    if (result.outcome === "group_slot_required") {
+      throw new AppError(
+        "Session slot ID is required for group sessions",
+        400
+      );
+    }
+
+    if (result.outcome === "slot_not_found") {
+      throw new AppError("Session slot not found for this group session", 404);
+    }
+
+    if (result.outcome === "individual_slot_not_allowed") {
+      throw new AppError(
+        "Session slot ID cannot be used for individual sessions",
+        400
+      );
+    }
+
+    if (result.outcome === "individual_date_time_required") {
+      throw new AppError(
+        "Booking date and time are required for individual sessions",
+        400
+      );
+    }
+
+    if (result.outcome === "individual_unavailable") {
+      throw new AppError(
+        "This individual session is already booked for the selected time",
+        409
+      );
+    }
+
+    if (result.outcome === "group_full") {
+      throw new AppError("This group session is fully booked", 409);
+    }
+
     res.status(201).json({
       status: "success",
-      data: booking,
+      data: result.booking,
     });
   } catch (error) {
     if (isDuplicateBookingError(error)) {

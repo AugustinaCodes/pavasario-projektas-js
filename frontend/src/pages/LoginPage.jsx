@@ -94,7 +94,7 @@ function LoginPage() {
 
   return (
     <main className="fit-page fit-auth-page">
-      <div className="mx-auto flex w-full max-w-6xl flex-1 items-center px-5 py-10 lg:-translate-y-12">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 items-center px-5 py-8">
         <div className="grid w-full gap-7 lg:grid-cols-[1.05fr_0.95fr]">
           <section className="flex flex-col justify-center rounded-fit-xl border border-fit-border bg-fit-surface p-8 lg:p-10">
             <p className="mb-4 text-sm font-extrabold uppercase tracking-[0.24em] text-fit-primary">
