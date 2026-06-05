@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import PasswordInput from "../components/PasswordInput";
 import useAuthStore from "../store/useAuthStore";
 
 const getFieldErrors = (error) => {
@@ -28,8 +29,10 @@ function LoginPage() {
   const location = useLocation();
   const login = useAuthStore((state) => state.login);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const currentUser = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
   const error = useAuthStore((state) => state.error);
+  const clearError = useAuthStore((state) => state.clearError);
   const successMessage = location.state?.successMessage;
 
   const [formData, setFormData] = useState({
@@ -40,8 +43,16 @@ function LoginPage() {
   const fieldErrors = getFieldErrors(error);
   const hasFieldErrors = Object.keys(fieldErrors).length > 0;
 
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
+
+    if (error) {
+      clearError();
+    }
 
     setFormData((current) => ({
       ...current,
@@ -56,7 +67,14 @@ function LoginPage() {
       const user = await login(formData);
 
       if (user) {
-        const destination = location.state?.from?.pathname || "/dashboard";
+        const requestedLocation = location.state?.from;
+        const requestedPath = requestedLocation
+          ? `${requestedLocation.pathname}${requestedLocation.search || ""}${
+              requestedLocation.hash || ""
+            }`
+          : null;
+        const roleDestination = user.role === "admin" ? "/admin" : "/dashboard";
+        const destination = requestedPath || roleDestination;
 
         navigate(destination, { replace: true });
       }
@@ -66,14 +84,19 @@ function LoginPage() {
   };
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return (
+      <Navigate
+        to={currentUser?.role === "admin" ? "/admin" : "/dashboard"}
+        replace
+      />
+    );
   }
 
   return (
-    <main className="fit-page">
-      <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-5 py-10">
+    <main className="fit-page fit-auth-page">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 items-center px-5 py-10 lg:-translate-y-12">
         <div className="grid w-full gap-7 lg:grid-cols-[1.05fr_0.95fr]">
-          <section className="rounded-fit-xl border border-fit-border bg-white/[0.04] p-8 lg:p-10">
+          <section className="flex flex-col justify-center rounded-fit-xl border border-fit-border bg-fit-surface p-8 lg:p-10">
             <p className="mb-4 text-sm font-extrabold uppercase tracking-[0.24em] text-fit-primary">
               Welcome back
             </p>
@@ -97,17 +120,16 @@ function LoginPage() {
 
           <section className="fit-panel p-6 sm:p-8">
             <div className="mb-6">
-              <p className="text-sm font-bold uppercase tracking-[0.2em] text-fit-primary">
-                Login
-              </p>
-              <h2 className="mt-2 text-3xl font-black">Enter your account</h2>
+              <h2 className="text-2xl font-black text-fit-primary">
+                Enter your account
+              </h2>
               <p className="mt-2 text-sm fit-text-muted">
                 Use the email and password connected to your FitBook profile.
               </p>
             </div>
             
             {successMessage ? (
-              <div className="mb-4 rounded-fit-lg border border-green-500/30 bg-green-500/10 p-4 text-sm text-green-400">
+              <div className="fit-feedback-success mb-4 p-4 text-sm">
                 <p className="font-bold">{successMessage}</p>
               </div>
             ) : null}
@@ -136,12 +158,9 @@ function LoginPage() {
 
               <label className="grid gap-2 text-sm font-semibold">
                 Password
-                <input
-                  className={`fit-input ${
-                    fieldErrors.password ? "border-fit-rose" : ""
-                  }`}
+                <PasswordInput
+                  className={fieldErrors.password ? "border-fit-rose" : ""}
                   name="password"
-                  type="password"
                   autoComplete="current-password"
                   value={formData.password}
                   onChange={handleChange}

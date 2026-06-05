@@ -48,8 +48,9 @@ CREATE TABLE bookings (
   CONSTRAINT fk_bookings_session
     FOREIGN KEY (session_id)
     REFERENCES sessions(id)
-    ON DELETE CASCADE,
-
-  CONSTRAINT unique_session_booking_time
-    UNIQUE (session_id, booking_date, booking_time)
+    ON DELETE CASCADE
 );
+
+CREATE UNIQUE INDEX unique_active_user_booking_time
+  ON bookings (user_id, session_id, booking_date, booking_time)
+  WHERE status <> 'cancelled';

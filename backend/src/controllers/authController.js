@@ -13,12 +13,22 @@ const register = catchAsync(async (req, res, next) => {
         throw new AppError("Email already exists", 409);
     }
 
-    const newUser = await createUser({
-        name,
-        email,
-        password,
-        role: "user",
-    });
+    let newUser;
+
+    try {
+        newUser = await createUser({
+            name,
+            email,
+            password,
+            role: "user",
+        });
+    } catch (error) {
+        if (error.code === "23505") {
+            throw new AppError("Email already exists", 409);
+        }
+
+        throw error;
+    }
 
     createSendToken(newUser, 201, res);
 });

@@ -11,18 +11,17 @@ import { useEffect } from "react";
 import useAuthStore from "./store/useAuthStore";
 
 function App() {
-
   const checkAuth = useAuthStore((state) => state.checkAuth);
 
-useEffect(() => {
-  checkAuth();
-}, [checkAuth]);
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   return (
-    <div className="bg-fit-bg text-fit-text font-fit">
-      <div className="mx-auto w-full max-w-6xl px-5 py-10">
-        <Navbar />
+    <div className="flex min-h-screen flex-col bg-fit-bg text-fit-text font-fit">
+      <Navbar />
 
+      <div className="flex flex-1 flex-col">
         <Routes>
           <Route path="/" element={<SessionsPage />} />
           <Route path="/sessions" element={<SessionsPage />} />
@@ -33,9 +32,9 @@ useEffect(() => {
             <Route path="/dashboard" element={<DashboardPage />} />
           </Route>
 
-         <Route element={<AdminRoute />}>
-  <Route path="/admin" element={<AdminPage />} />
-</Route>
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<AdminPage />} />
+          </Route>
 
           <Route path="*" element={<Navigate to="/sessions" replace />} />
         </Routes>

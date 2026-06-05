@@ -1,8 +1,5 @@
 const { z } = require("zod");
 
-const passwordRegex =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/;
-
 const registerSchema = z.object({
   body: z.object({
     name: z

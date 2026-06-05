@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const weekdayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const getCalendarDays = (date) => {
@@ -31,24 +33,54 @@ const getCalendarDays = (date) => {
 };
 
 function Calendar({ bookings = [], selectedDate = "", onSelectDate }) {
-  const currentDate = new Date();
-  const calendarDays = getCalendarDays(currentDate);
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
+  const calendarDays = getCalendarDays(visibleMonth);
 
-  const monthLabel = currentDate.toLocaleDateString("en-US", {
+  const monthLabel = visibleMonth.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   });
 
   const bookingDates = new Set(bookings.map((booking) => booking.booking_date));
+  const changeMonth = (offset) => {
+    setVisibleMonth(
+      (current) =>
+        new Date(current.getFullYear(), current.getMonth() + offset, 1)
+    );
+  };
 
   return (
     <section className="fit-panel p-6">
-      <div className="mb-5">
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-fit-primary">
-          Calendar
-        </p>
+      <div className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-fit-primary">
+            Calendar
+          </p>
 
-        <h2 className="mt-2 text-2xl font-black">{monthLabel}</h2>
+          <h2 className="mt-2 text-2xl font-black">{monthLabel}</h2>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            className="fit-btn-secondary px-4 py-2"
+            type="button"
+            onClick={() => changeMonth(-1)}
+            aria-label="Show previous month"
+          >
+            Previous
+          </button>
+          <button
+            className="fit-btn-secondary px-4 py-2"
+            type="button"
+            onClick={() => changeMonth(1)}
+            aria-label="Show next month"
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-7 gap-2 text-center">
@@ -60,7 +92,7 @@ function Calendar({ bookings = [], selectedDate = "", onSelectDate }) {
 
         {calendarDays.map((item) => (
           <button
-            className={`flex min-h-12 items-center justify-center rounded-fit-md text-sm font-bold transition ${
+            className={`flex h-9 w-full items-center justify-center rounded-fit-md text-sm font-bold transition ${
               item.dateString === selectedDate
                 ? "bg-fit-sky text-fit-bg"
                 : item.dateString && bookingDates.has(item.dateString)

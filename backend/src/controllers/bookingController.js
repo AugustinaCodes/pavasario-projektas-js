@@ -17,7 +17,7 @@ const duplicateBookingMessage =
 const isDuplicateBookingError = (error) => {
   return (
     error.code === "23505" &&
-    error.constraint === "unique_session_booking_time"
+    error.constraint === "unique_active_user_booking_time"
   );
 };
 
@@ -59,6 +59,7 @@ const createMyBooking = catchAsync(async (req, res) => {
   }
 
   const existingBooking = await findBookingSlot(
+    req.user.id,
     session_id,
     booking_date,
     booking_time
@@ -108,7 +109,12 @@ const updateBookingStatusForAdmin = (
     const updatedBooking = await updateBookingStatus({
       bookingId: id,
       status: nextStatus,
+      allowedStatuses,
     });
+
+    if (!updatedBooking) {
+      throw new AppError(errorMessage, 409);
+    }
 
     res.status(200).json({
       status: "success",
@@ -156,7 +162,15 @@ const cancelBooking = catchAsync(async (req, res) => {
     const cancelledBooking = await updateBookingStatus({
       bookingId: id,
       status: "cancelled",
+      allowedStatuses: ["pending", "confirmed"],
     });
+
+    if (!cancelledBooking) {
+      throw new AppError(
+        "Only pending or confirmed bookings can be cancelled",
+        409
+      );
+    }
 
     res.status(200).json({
       status: "success",
@@ -169,10 +183,14 @@ const cancelBooking = catchAsync(async (req, res) => {
   const cancelledBooking = await cancelBookingForUser({
     bookingId: id,
     userId: req.user.id,
+    allowedStatuses: ["pending", "confirmed"],
   });
 
   if (!cancelledBooking) {
-    throw new AppError("Booking not found", 404);
+    throw new AppError(
+      "Only pending or confirmed bookings can be cancelled",
+      409
+    );
   }
 
   res.status(200).json({

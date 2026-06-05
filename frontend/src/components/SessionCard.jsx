@@ -17,7 +17,11 @@ function SessionCard({ session, onBook }) {
             {session.duration_minutes} min
         </span>
 
-        <button className="fit-btn-primary" type="button" onClick={() => onBook(session)}>
+        <button
+          className="fit-btn-primary"
+          type="button"
+          onClick={() => onBook(session)}
+        >
             Book Session
         </button>
 

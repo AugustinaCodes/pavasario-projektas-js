@@ -14,7 +14,8 @@
 
   --fit-sky: #7dd3fc;
   --fit-amber: #fde68a;
-  --fit-rose: #fecdd3;
+  --fit-rose: #f87171;
+  --fit-success: #4ade80;
 }
 
 @theme {
@@ -31,7 +32,8 @@
 
   --color-fit-sky: #7dd3fc;
   --color-fit-amber: #fde68a;
-  --color-fit-rose: #fecdd3;
+  --color-fit-rose: #f87171;
+  --color-fit-success: #4ade80;
 
   --font-fit: Inter, ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -45,7 +47,21 @@
 
 @layer components {
   .fit-page {
-    @apply min-h-screen bg-fit-bg text-fit-text font-fit;
+    @apply flex flex-1 flex-col bg-fit-bg text-fit-text font-fit;
+  }
+
+  .fit-auth-page {
+    @apply relative isolate overflow-hidden;
+  }
+
+  .fit-auth-page::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    content: "";
+    opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg width='80' height='40' viewBox='0 0 80 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M28 20h24'/%3E%3Cpath d='M24 14v12M20 16v8M56 14v12M60 16v8'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 160px 80px;
   }
 
   .fit-panel {
@@ -68,12 +84,28 @@
     @apply h-12 w-full rounded-fit-md border border-fit-border bg-white/[0.04] px-4 text-sm text-fit-text outline-none focus:border-fit-primary;
   }
 
+  .fit-select {
+    @apply h-14 w-full appearance-none rounded-full border border-fit-primary/60 bg-fit-surface-2 px-6 pr-12 text-sm font-black text-fit-text outline-none transition hover:border-fit-primary focus:border-fit-primary focus:ring-2 focus:ring-fit-primary/20;
+  }
+
+  .fit-btn-danger {
+    @apply rounded-full border border-fit-rose/40 bg-fit-rose/10 font-bold text-fit-rose transition hover:bg-fit-rose/20;
+  }
+
+  .fit-btn-complete {
+    @apply rounded-full bg-fit-sky font-bold text-fit-bg transition hover:opacity-90;
+  }
+
+  .fit-feedback-success {
+    @apply rounded-fit-lg border border-fit-success/30 bg-fit-success/10 text-fit-success;
+  }
+
   .fit-text-muted {
     @apply text-fit-muted;
   }
 
   .fit-navbar {
-    @apply flex flex-col gap-6 border-b border-fit-border pb-6 lg:flex-row lg:items-center lg:justify-between;
+    @apply flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between;
   }
 
   .fit-brand-kicker {
@@ -81,15 +113,15 @@
   }
 
   .fit-nav-tabs {
-    @apply flex w-full flex-wrap gap-2 rounded-fit-lg border border-fit-border bg-white/[0.04] p-1.5 sm:w-auto;
+    @apply flex w-full flex-wrap gap-2 sm:w-auto;
   }
 
   .fit-nav-tab {
-    @apply cursor-pointer rounded-full border-0 bg-transparent px-4 py-2.5 text-sm font-bold text-zinc-300 transition hover:bg-fit-primary hover:text-fit-bg;
+    @apply cursor-pointer rounded-full border-0 bg-transparent px-4 py-2.5 text-sm font-bold text-zinc-300 transition hover:bg-fit-primary/10 hover:text-fit-primary;
   }
 
   .fit-nav-tab-active {
-    @apply bg-fit-primary text-fit-bg hover:bg-fit-primary-strong;
+    @apply bg-transparent text-fit-primary ring-1 ring-inset ring-fit-primary/25 hover:bg-fit-primary/10 hover:text-fit-primary;
   }
 
   .fit-status {

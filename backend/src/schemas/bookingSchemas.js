@@ -16,6 +16,17 @@ const isValidDate = (value) => {
   );
 };
 
+const isTodayOrFuture = (value) => {
+  const today = new Date();
+  const localToday = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
+
+  return value >= localToday;
+};
+
 const createBookingSchema = z.object({
   body: z.object({
     session_id: z.coerce
@@ -33,7 +44,8 @@ const createBookingSchema = z.object({
       .refine(
         isValidDate,
         "Booking date must be a valid date in YYYY-MM-DD format"
-      ),
+      )
+      .refine(isTodayOrFuture, "Booking date cannot be in the past"),
 
     booking_time: z
       .string({
