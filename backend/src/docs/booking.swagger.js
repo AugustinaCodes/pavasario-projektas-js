@@ -81,7 +81,7 @@ const bookingSwagger = {
       post: {
         summary: "Create a booking",
         description:
-          "Creates a booking for the authenticated user. Date and time are required.",
+          "Creates a booking for the authenticated user. Date and time are required, and the date cannot be in the past.",
         tags: ["Bookings"],
         security: [
           {
@@ -227,6 +227,16 @@ const bookingSwagger = {
               },
             },
           },
+          409: {
+            description: "Booking status changed before the update completed",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -296,6 +306,16 @@ const bookingSwagger = {
           },
           404: {
             description: "Booking not found",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
+          409: {
+            description: "Booking status changed before the update completed",
             content: {
               "application/json": {
                 schema: {
@@ -381,6 +401,16 @@ const bookingSwagger = {
           },
           404: {
             description: "Booking not found",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/ErrorResponse",
+                },
+              },
+            },
+          },
+          409: {
+            description: "Booking status changed before the update completed",
             content: {
               "application/json": {
                 schema: {

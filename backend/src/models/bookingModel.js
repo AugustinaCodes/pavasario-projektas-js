@@ -71,7 +71,12 @@ const findBookingById = async (id) => {
   return bookings[0] || null;
 };
 
-const findBookingSlot = async (sessionId, bookingDate, bookingTime) => {
+const findBookingSlot = async (
+  userId,
+  sessionId,
+  bookingDate,
+  bookingTime
+) => {
   const bookings = await sql`
     SELECT
       id,
@@ -81,9 +86,11 @@ const findBookingSlot = async (sessionId, bookingDate, bookingTime) => {
       booking_time::text AS booking_time,
       status
     FROM bookings
-    WHERE session_id = ${sessionId}
+    WHERE user_id = ${userId}
+      AND session_id = ${sessionId}
       AND booking_date = ${bookingDate}
       AND booking_time = ${bookingTime}
+      AND status <> 'cancelled'
   `;
 
   return bookings[0] || null;
@@ -135,13 +142,18 @@ const createBooking = async ({
   return getBookingResponseById(bookings[0].id);
 };
 
-const updateBookingStatus = async ({ bookingId, status }) => {
+const updateBookingStatus = async ({
+  bookingId,
+  status,
+  allowedStatuses,
+}) => {
   const bookings = await sql`
     UPDATE bookings
     SET
       status = ${status},
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ${bookingId}
+      AND status IN ${sql(allowedStatuses)}
     RETURNING id
   `;
 
@@ -152,7 +164,11 @@ const updateBookingStatus = async ({ bookingId, status }) => {
   return getAdminBookingResponseById(bookings[0].id);
 };
 
-const cancelBookingForUser = async ({ bookingId, userId }) => {
+const cancelBookingForUser = async ({
+  bookingId,
+  userId,
+  allowedStatuses,
+}) => {
   const bookings = await sql`
     UPDATE bookings
     SET
@@ -160,6 +176,7 @@ const cancelBookingForUser = async ({ bookingId, userId }) => {
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ${bookingId}
       AND user_id = ${userId}
+      AND status IN ${sql(allowedStatuses)}
     RETURNING id
   `;
 

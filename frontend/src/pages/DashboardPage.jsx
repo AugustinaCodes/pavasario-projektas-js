@@ -48,11 +48,13 @@ function DashboardPage() {
     <main className="fit-page">
       <div className="mx-auto w-full max-w-6xl px-5 py-10">
         <header className="my-8">
-          <p className="mb-2 text-sm font-bold uppercase tracking-[0.2em] text-fit-primary">
+          <p className="mb-2 text-sm font-bold uppercase tracking-[0.2em] text-white">
             My bookings
           </p>
 
-          <h2 className="text-4xl font-black">Your training schedule</h2>
+          <h2 className="text-4xl font-black text-fit-primary">
+            Your training schedule
+          </h2>
 
           <p className="mt-3 fit-text-muted">
             Track your booked sessions, statuses and cancellation options.

@@ -5,6 +5,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 import useBookingStore from "../store/useBookingStore";
 import useAuthStore from "../store/useAuthStore";
 
+const getTodayDateString = () => {
+  const today = new Date();
+
+  return [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, "0"),
+    String(today.getDate()).padStart(2, "0"),
+  ].join("-");
+};
+
 function SessionPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -182,6 +192,7 @@ function SessionPage() {
                   className="fit-input"
                   name="booking_date"
                   type="date"
+                  min={getTodayDateString()}
                   value={bookingForm.booking_date}
                   onChange={handleBookingChange}
                   required
@@ -203,7 +214,7 @@ function SessionPage() {
               <label className="grid gap-2 text-sm font-semibold">
                 Notes
                 <textarea
-                  className="fit-input min-h-28 resize-none"
+                  className="fit-input min-h-28 resize-none py-4 placeholder:text-zinc-600"
                   name="notes"
                   value={bookingForm.notes}
                   onChange={handleBookingChange}
@@ -245,7 +256,7 @@ function SessionPage() {
         ) : null}
 
         {successMessage ? (
-          <div className="mt-6 rounded-fit-lg border border-green-500/30 bg-green-500/10 p-4 text-sm text-green-400">
+          <div className="fit-feedback-success mt-6 p-4 text-sm">
             <p className="font-bold">{successMessage}</p>
           </div>
         ) : null}

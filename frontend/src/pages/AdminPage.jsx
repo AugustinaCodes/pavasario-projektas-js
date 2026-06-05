@@ -2,23 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import useBookingStore from "../store/useBookingStore";
 
 const getBookingStatusClass = (status) => {
-  if (status === "pending") {
-    return "border-yellow-500/30 bg-yellow-500/10 text-yellow-300";
-  }
+  const supportedStatuses = [
+    "pending",
+    "confirmed",
+    "completed",
+    "cancelled",
+  ];
 
-  if (status === "confirmed") {
-    return "border-blue-500/30 bg-blue-500/10 text-blue-300";
-  }
-
-  if (status === "completed") {
-    return "border-green-500/30 bg-green-500/10 text-green-400";
-  }
-
-  if (status === "cancelled") {
-    return "border-fit-rose/30 bg-fit-rose/10 text-fit-rose";
-  }
-
-  return "border-fit-border bg-white/5 fit-text-muted";
+  return supportedStatuses.includes(status)
+    ? `fit-status-${status}`
+    : "border-fit-border bg-white/5 fit-text-muted";
 };
 
 const getSessionTitle = (booking) =>
@@ -215,23 +208,23 @@ function AdminPage() {
   Status
   <div className="relative">
     <select
-      className="h-14 w-full appearance-none rounded-full border border-fit-primary/60 bg-[#151b23] px-6 pr-12 text-sm font-black text-white outline-none transition hover:border-fit-primary focus:border-fit-primary focus:ring-2 focus:ring-fit-primary/20"
+      className="fit-select"
       value={statusFilter}
       onChange={(event) => setStatusFilter(event.target.value)}
     >
-      <option className="bg-[#151b23] text-white" value="all">
+      <option value="all">
         All statuses
       </option>
-      <option className="bg-[#151b23] text-white" value="pending">
+      <option value="pending">
         Pending
       </option>
-      <option className="bg-[#151b23] text-white" value="confirmed">
+      <option value="confirmed">
         Confirmed
       </option>
-      <option className="bg-[#151b23] text-white" value="completed">
+      <option value="completed">
         Completed
       </option>
-      <option className="bg-[#151b23] text-white" value="cancelled">
+      <option value="cancelled">
         Cancelled
       </option>
     </select>
@@ -246,17 +239,17 @@ function AdminPage() {
   Sort by
   <div className="relative">
     <select
-      className="h-14 w-full appearance-none rounded-full border border-fit-primary/60 bg-[#151b23] px-6 pr-12 text-sm font-black text-white outline-none transition hover:border-fit-primary focus:border-fit-primary focus:ring-2 focus:ring-fit-primary/20"
+      className="fit-select"
       value={sortBy}
       onChange={(event) => setSortBy(event.target.value)}
     >
-      <option className="bg-[#151b23] text-white" value="upcoming">
+      <option value="upcoming">
         Upcoming first
       </option>
-      <option className="bg-[#151b23] text-white" value="newest">
+      <option value="newest">
         Newest first
       </option>
-      <option className="bg-[#151b23] text-white" value="oldest">
+      <option value="oldest">
         Oldest first
       </option>
     </select>
@@ -322,7 +315,7 @@ function AdminPage() {
 
                     <td className="p-4 align-top">
                       <span
-                        className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] ${getBookingStatusClass(
+                        className={`fit-status uppercase tracking-[0.12em] ${getBookingStatusClass(
                           booking.status
                         )}`}
                       >
@@ -335,64 +328,62 @@ function AdminPage() {
                     </td>
 
                     <td className="p-4 align-top">
-  <div className="flex min-w-48 flex-col gap-2">
-    {booking.status === "pending" ? (
-      <>
-        <button
-          className="inline-flex items-center justify-center rounded-full bg-fit-primary px-4 py-2 text-xs font-black text-slate-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-          type="button"
-          disabled={isLoading}
-          onClick={() => handleConfirm(booking.id)}
-        >
-          Confirm booking
-        </button>
+                      <div className="flex min-w-48 flex-col gap-2">
+                        {booking.status === "pending" ? (
+                          <>
+                            <button
+                              className="fit-btn-primary inline-flex items-center justify-center px-4 py-2 text-xs font-black disabled:cursor-not-allowed disabled:opacity-60"
+                              type="button"
+                              disabled={isLoading}
+                              onClick={() => handleConfirm(booking.id)}
+                            >
+                              Confirm booking
+                            </button>
 
-        <button
-          className="inline-flex items-center justify-center rounded-full border border-fit-rose/40 bg-fit-rose/10 px-4 py-2 text-xs font-black text-fit-rose transition hover:bg-fit-rose/20 disabled:cursor-not-allowed disabled:opacity-60"
-          type="button"
-          disabled={isLoading}
-          onClick={() => handleCancel(booking.id)}
-        >
-          Cancel booking
-        </button>
-      </>
-    ) : null}
+                            <button
+                              className="fit-btn-danger inline-flex items-center justify-center px-4 py-2 text-xs font-black disabled:cursor-not-allowed disabled:opacity-60"
+                              type="button"
+                              disabled={isLoading}
+                              onClick={() => handleCancel(booking.id)}
+                            >
+                              Cancel booking
+                            </button>
+                          </>
+                        ) : null}
 
-    {booking.status === "confirmed" ? (
-      <>
-        <button
-          className="inline-flex items-center justify-center rounded-full bg-green-500 px-4 py-2 text-xs font-black text-slate-950 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-          type="button"
-          disabled={isLoading}
-          onClick={() => handleComplete(booking.id)}
-        >
-          Mark completed
-        </button>
+                        {booking.status === "confirmed" ? (
+                          <>
+                            <button
+                              className="fit-btn-complete inline-flex items-center justify-center px-4 py-2 text-xs font-black disabled:cursor-not-allowed disabled:opacity-60"
+                              type="button"
+                              disabled={isLoading}
+                              onClick={() => handleComplete(booking.id)}
+                            >
+                              Mark completed
+                            </button>
 
-        <button
-          className="inline-flex items-center justify-center rounded-full border border-fit-rose/40 bg-fit-rose/10 px-4 py-2 text-xs font-black text-fit-rose transition hover:bg-fit-rose/20 disabled:cursor-not-allowed disabled:opacity-60"
-          type="button"
-          disabled={isLoading}
-          onClick={() => handleCancel(booking.id)}
-        >
-          Cancel booking
-        </button>
-      </>
-    ) : null}
+                            <button
+                              className="fit-btn-danger inline-flex items-center justify-center px-4 py-2 text-xs font-black disabled:cursor-not-allowed disabled:opacity-60"
+                              type="button"
+                              disabled={isLoading}
+                              onClick={() => handleCancel(booking.id)}
+                            >
+                              Cancel booking
+                            </button>
+                          </>
+                        ) : null}
 
-    {booking.status === "completed" ? (
-      <div className="rounded-fit-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-xs font-bold text-green-400">
-        Booking completed
-      </div>
-    ) : null}
-
-    {booking.status === "cancelled" ? (
-      <div className="rounded-fit-lg border border-fit-rose/20 bg-fit-rose/10 px-4 py-3 text-xs font-bold text-fit-rose">
-        Booking cancelled
-      </div>
-    ) : null}
-  </div>
-</td>
+                        {booking.status === "completed" ||
+                        booking.status === "cancelled" ? (
+                          <span
+                            className="px-4 py-2 text-center fit-text-muted"
+                            aria-label="No actions available"
+                          >
+                            -
+                          </span>
+                        ) : null}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

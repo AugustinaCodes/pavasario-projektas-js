@@ -70,6 +70,10 @@ DB_NAME=fitbook
 
 These values should match the backend `.env` file.
 
+When running the backend directly with `npm run dev`, use
+`DB_HOST=localhost`. Docker Compose overrides this value with `DB_HOST=db`
+inside the API container.
+
 ### Connect to PostgreSQL Manually
 
 To open the PostgreSQL CLI inside the database service, run:

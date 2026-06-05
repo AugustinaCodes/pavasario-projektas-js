@@ -34,12 +34,14 @@ const useAuthStore = create((set) => ({
 
       return user;
     } catch (error) {
+      const isUnauthenticated = error.response?.status === 401;
+
       set({
         user: null,
         isAuthenticated: false,
         isLoading: false,
         hasCheckedAuth: true,
-        error: getErrorData(error),
+        error: isUnauthenticated ? null : getErrorData(error),
       });
 
       return null;
@@ -57,6 +59,7 @@ const useAuthStore = create((set) => ({
         user,
         isAuthenticated: true,
         isLoading: false,
+        hasCheckedAuth: true,
         error: null,
       });
 
@@ -84,6 +87,7 @@ const useAuthStore = create((set) => ({
         user,
         isAuthenticated: true,
         isLoading: false,
+        hasCheckedAuth: true,
         error: null,
       });
 
@@ -101,33 +105,31 @@ const useAuthStore = create((set) => ({
   },
 
   logout: async () => {
-  set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null });
 
-  try {
-    const response = await api.post("/auth/logout");
+    try {
+      const response = await api.post("/auth/logout");
 
-    set({
-      user: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
-    });
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        hasCheckedAuth: true,
+        error: null,
+      });
 
-    return (
-      response.data?.message ||
-      "You have successfully logged out."
-    );
-  } catch (error) {
-    const errorData = getErrorData(error);
+      return response.data?.message || "You have successfully logged out.";
+    } catch (error) {
+      const errorData = getErrorData(error);
 
-    set({
-      isLoading: false,
-      error: errorData,
-    });
+      set({
+        isLoading: false,
+        error: errorData,
+      });
 
-    throw new Error(errorData.message, { cause: error });
-  }
-},
+      throw new Error(errorData.message, { cause: error });
+    }
+  },
 
   setUser: (user) => {
     set({

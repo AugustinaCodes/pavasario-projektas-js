@@ -13,7 +13,7 @@ const fetchAllSessions = catchAsync(async (req, res) => {
 });
 
 const fetchSessionById = catchAsync(async (req, res) => {
-  const sessionId = Number(req.params.id);
+  const { id: sessionId } = req.validated.params;
   const session = await getSessionById(sessionId);
 
   if (!session) {

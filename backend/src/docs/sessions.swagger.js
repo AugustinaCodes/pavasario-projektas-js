@@ -73,6 +73,9 @@ const sessionsSwagger = {
           404: {
             description: "Session not found",
           },
+          400: {
+            description: "Session ID must be a positive integer",
+          },
         },
       },
     },
