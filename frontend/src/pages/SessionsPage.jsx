@@ -15,6 +15,24 @@ const getTodayDateString = () => {
   ].join("-");
 };
 
+const formatSlotLabel = (slot) => {
+  const date = new Date(`${slot.session_date}T00:00:00`).toLocaleDateString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }
+  );
+
+  return `${date} at ${slot.start_time.slice(0, 5)} · ${
+    slot.available_places
+  } places available`;
+};
+
+const isPastSlot = (slot) =>
+  new Date(`${slot.session_date}T${slot.start_time}`) < new Date();
+
 function SessionPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,6 +42,7 @@ function SessionPage() {
   const createBooking = useBookingStore((state) => state.createBooking);
   const isBookingLoading = useBookingStore((state) => state.isLoading);
   const bookingError = useBookingStore((state) => state.error);
+  const clearBookingError = useBookingStore((state) => state.clearError);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const [selectedSession, setSelectedSession] = useState(null);
@@ -31,6 +50,7 @@ function SessionPage() {
   const [formError, setFormError] = useState("");
 
   const [bookingForm, setBookingForm] = useState({
+    session_slot_id: "",
     booking_date: "",
     booking_time: "",
     notes: "",
@@ -63,11 +83,13 @@ function SessionPage() {
       return;
     }
 
-    setSelectedSession(session);
+    clearBookingError();
     setSuccessMessage("");
     setFormError("");
+    setSelectedSession(session);
 
     setBookingForm({
+      session_slot_id: "",
       booking_date: "",
       booking_time: "",
       notes: "",
@@ -83,6 +105,12 @@ function SessionPage() {
     }));
   };
 
+  const handleCloseBookingForm = () => {
+    setSelectedSession(null);
+    setFormError("");
+    clearBookingError();
+  };
+
   const handleBookingSubmit = async (event) => {
     event.preventDefault();
 
@@ -90,19 +118,27 @@ function SessionPage() {
       return;
     }
 
-    if (!bookingForm.booking_date && !bookingForm.booking_time) {
+    const isGroup = selectedSession.session_type === "group";
+
+    if (isGroup && !bookingForm.session_slot_id) {
+      setSuccessMessage("");
+      setFormError("Please select an available session time.");
+      return;
+    }
+
+    if (!isGroup && !bookingForm.booking_date && !bookingForm.booking_time) {
       setSuccessMessage("");
       setFormError("Date and time are required.");
       return;
     }
 
-    if (!bookingForm.booking_date) {
+    if (!isGroup && !bookingForm.booking_date) {
       setSuccessMessage("");
       setFormError("Date is required.");
       return;
     }
 
-    if (!bookingForm.booking_time) {
+    if (!isGroup && !bookingForm.booking_time) {
       setSuccessMessage("");
       setFormError("Time is required.");
       return;
@@ -111,16 +147,25 @@ function SessionPage() {
     try {
       setFormError("");
 
-      await createBooking({
+      const payload = {
         session_id: selectedSession.id,
-        booking_date: bookingForm.booking_date,
-        booking_time: bookingForm.booking_time,
         notes: bookingForm.notes,
-      });
+      };
+
+      if (isGroup) {
+        payload.session_slot_id = Number(bookingForm.session_slot_id);
+      } else {
+        payload.booking_date = bookingForm.booking_date;
+        payload.booking_time = bookingForm.booking_time;
+      }
+
+      await createBooking(payload);
 
       setSuccessMessage("Booking created successfully.");
+      await fetchSessions();
 
       setBookingForm({
+        session_slot_id: "",
         booking_date: "",
         booking_time: "",
         notes: "",
@@ -165,6 +210,13 @@ function SessionPage() {
             ))}
           </section>
         )}
+
+        {bookingError && !selectedSession ? (
+          <div className="mt-6 rounded-fit-lg border border-fit-rose/30 bg-fit-rose/10 p-4 text-sm text-fit-rose">
+            <p className="font-bold">{bookingError}</p>
+          </div>
+        ) : null}
+
         {selectedSession ? (
           <section ref={bookingFormRef} className="fit-panel mt-6 p-6 sm:p-8">
             <div className="mb-5">
@@ -177,7 +229,9 @@ function SessionPage() {
               </h2>
 
               <p className="mt-2 text-sm fit-text-muted">
-                Choose date and time for your booking. Notes are optional.
+                {selectedSession.session_type === "group"
+                  ? "Choose one of the available scheduled times. Notes are optional."
+                  : "Choose date and time for your booking. Notes are optional."}
               </p>
             </div>
 
@@ -186,30 +240,65 @@ function SessionPage() {
               className="grid gap-4"
               onSubmit={handleBookingSubmit}
             >
-              <label className="grid gap-2 text-sm font-semibold">
-                Date
-                <input
-                  className="fit-input"
-                  name="booking_date"
-                  type="date"
-                  min={getTodayDateString()}
-                  value={bookingForm.booking_date}
-                  onChange={handleBookingChange}
-                  required
-                />
-              </label>
+              {selectedSession.session_type === "group" ? (
+                <label className="grid gap-2 text-sm font-semibold">
+                  Available time
+                  <select
+                    className="fit-input max-w-xl"
+                    name="session_slot_id"
+                    value={bookingForm.session_slot_id}
+                    onChange={handleBookingChange}
+                    required
+                  >
+                    <option value="">Select a session time</option>
+                    {(selectedSession.slots || []).map((slot) => {
+                      const isDisabled =
+                        isPastSlot(slot) || slot.available_places <= 0;
 
-              <label className="grid gap-2 text-sm font-semibold">
-                Time
-                <input
-                  className="fit-input"
-                  name="booking_time"
-                  type="time"
-                  value={bookingForm.booking_time}
-                  onChange={handleBookingChange}
-                  required
-                />
-              </label>
+                      return (
+                        <option
+                          disabled={isDisabled}
+                          key={slot.id}
+                          value={slot.id}
+                        >
+                          {isPastSlot(slot)
+                            ? `${formatSlotLabel(slot)} · ended`
+                            : slot.available_places <= 0
+                              ? `${formatSlotLabel(slot)} · fully booked`
+                              : formatSlotLabel(slot)}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </label>
+              ) : (
+                <>
+                  <label className="grid gap-2 text-sm font-semibold">
+                    Date
+                    <input
+                      className="fit-input"
+                      name="booking_date"
+                      type="date"
+                      min={getTodayDateString()}
+                      value={bookingForm.booking_date}
+                      onChange={handleBookingChange}
+                      required
+                    />
+                  </label>
+
+                  <label className="grid gap-2 text-sm font-semibold">
+                    Time
+                    <input
+                      className="fit-input"
+                      name="booking_time"
+                      type="time"
+                      value={bookingForm.booking_time}
+                      onChange={handleBookingChange}
+                      required
+                    />
+                  </label>
+                </>
+              )}
 
               <label className="grid gap-2 text-sm font-semibold">
                 Notes
@@ -246,7 +335,7 @@ function SessionPage() {
                 <button
                   className="fit-btn-secondary"
                   type="button"
-                  onClick={() => setSelectedSession(null)}
+                  onClick={handleCloseBookingForm}
                 >
                   Cancel
                 </button>

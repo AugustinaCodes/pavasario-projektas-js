@@ -36,23 +36,27 @@ const createBookingSchema = z.object({
       .int("Session ID must be an integer")
       .positive("Session ID must be a positive number"),
 
+    session_slot_id: z.coerce
+      .number()
+      .int("Session slot ID must be an integer")
+      .positive("Session slot ID must be a positive number")
+      .optional(),
+
     booking_date: z
-      .string({
-        message: "Booking date is required",
-      })
+      .string()
       .trim()
       .refine(
         isValidDate,
         "Booking date must be a valid date in YYYY-MM-DD format"
       )
-      .refine(isTodayOrFuture, "Booking date cannot be in the past"),
+      .refine(isTodayOrFuture, "Booking date cannot be in the past")
+      .optional(),
 
     booking_time: z
-      .string({
-        message: "Booking time is required",
-      })
+      .string()
       .trim()
-      .regex(timeRegex, "Booking time must use HH:mm or HH:mm:ss format"),
+      .regex(timeRegex, "Booking time must use HH:mm or HH:mm:ss format")
+      .optional(),
 
     notes: z
       .string()

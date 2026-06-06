@@ -98,10 +98,10 @@ function RegisterPage() {
 
   return (
     <main className="fit-page fit-auth-page">
-      <div className="mx-auto flex w-full max-w-6xl flex-1 items-center px-5 py-10 lg:-translate-y-12">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 items-center px-5 py-6">
         <div className="grid w-full gap-7 lg:grid-cols-[1.05fr_0.95fr]">
           <section className="flex flex-col justify-center rounded-fit-xl border border-fit-border bg-fit-surface p-8 lg:p-10">
-            <div className="-translate-y-6">
+            <div>
               <p className="mb-4 text-sm font-extrabold uppercase tracking-[0.24em] text-fit-primary">
                 Create account
               </p>
@@ -124,8 +124,8 @@ function RegisterPage() {
             </div>
           </section>
 
-          <section className="fit-panel p-6 sm:p-8">
-            <div className="mb-6">
+          <section className="fit-panel p-6 sm:p-7">
+            <div className="mb-5">
               <h2 className="text-2xl font-black text-fit-primary">
                 Create your profile
               </h2>
@@ -134,7 +134,7 @@ function RegisterPage() {
               </p>
             </div>
 
-            <form noValidate className="grid gap-4" onSubmit={handleSubmit}>
+            <form noValidate className="grid gap-3" onSubmit={handleSubmit}>
               <label className="grid gap-2 text-sm font-semibold">
                 Name
                 <input

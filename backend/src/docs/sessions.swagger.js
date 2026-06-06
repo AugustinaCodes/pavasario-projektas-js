@@ -18,7 +18,7 @@ const sessionsSwagger = {
                     },
                     results: {
                       type: "integer",
-                      example: 5,
+                      example: 10,
                     },
                     data: {
                       type: "array",
@@ -106,6 +106,24 @@ const sessionsSwagger = {
           type: "string",
           example: "40.00",
         },
+        session_type: {
+          type: "string",
+          enum: ["individual", "group"],
+          example: "individual",
+        },
+        capacity: {
+          type: "integer",
+          minimum: 1,
+          example: 1,
+        },
+        slots: {
+          type: "array",
+          description:
+            "Scheduled times for group sessions. Individual sessions return an empty array.",
+          items: {
+            $ref: "#/components/schemas/SessionSlot",
+          },
+        },
         created_at: {
           type: "string",
           format: "date-time",
@@ -113,6 +131,30 @@ const sessionsSwagger = {
         updated_at: {
           type: "string",
           format: "date-time",
+        },
+      },
+    },
+
+    SessionSlot: {
+      type: "object",
+      properties: {
+        id: {
+          type: "integer",
+          example: 7,
+        },
+        session_date: {
+          type: "string",
+          format: "date",
+          example: "2026-06-09",
+        },
+        start_time: {
+          type: "string",
+          example: "18:30:00",
+        },
+        available_places: {
+          type: "integer",
+          minimum: 0,
+          example: 15,
         },
       },
     },

@@ -5,7 +5,9 @@ const bookingResponseSelect = sql`
     b.id,
     b.user_id,
     b.session_id,
+    b.session_slot_id,
     s.title AS session_title,
+    s.session_type,
     b.booking_date::text AS booking_date,
     b.booking_time::text AS booking_time,
     b.status,
@@ -24,7 +26,9 @@ const adminBookingResponseSelect = sql`
     u.name AS user_name,
     u.email AS user_email,
     b.session_id,
+    b.session_slot_id,
     s.title AS session_title,
+    s.session_type,
     b.booking_date::text AS booking_date,
     b.booking_time::text AS booking_time,
     b.status,
@@ -58,6 +62,7 @@ const findBookingById = async (id) => {
       id,
       user_id,
       session_id,
+      session_slot_id,
       booking_date::text AS booking_date,
       booking_time::text AS booking_time,
       status,
@@ -66,31 +71,6 @@ const findBookingById = async (id) => {
       updated_at
     FROM bookings
     WHERE id = ${id}
-  `;
-
-  return bookings[0] || null;
-};
-
-const findBookingSlot = async (
-  userId,
-  sessionId,
-  bookingDate,
-  bookingTime
-) => {
-  const bookings = await sql`
-    SELECT
-      id,
-      user_id,
-      session_id,
-      booking_date::text AS booking_date,
-      booking_time::text AS booking_time,
-      status
-    FROM bookings
-    WHERE user_id = ${userId}
-      AND session_id = ${sessionId}
-      AND booking_date = ${bookingDate}
-      AND booking_time = ${bookingTime}
-      AND status <> 'cancelled'
   `;
 
   return bookings[0] || null;
@@ -114,32 +94,150 @@ const getAdminBookingResponseById = async (id) => {
   return bookings[0] || null;
 };
 
-const createBooking = async ({
+const createBookingWithCapacity = async ({
   userId,
   sessionId,
+  sessionSlotId,
   bookingDate,
   bookingTime,
   notes,
 }) => {
-  const bookings = await sql`
-    INSERT INTO bookings (
-      user_id,
-      session_id,
-      booking_date,
-      booking_time,
-      notes
-    )
-    VALUES (
-      ${userId},
-      ${sessionId},
-      ${bookingDate},
-      ${bookingTime},
-      ${notes || null}
-    )
-    RETURNING id
-  `;
+  const result = await sql.begin(async (transaction) => {
+    const sessions = await transaction`
+      SELECT
+        id,
+        session_type,
+        capacity
+      FROM sessions
+      WHERE id = ${sessionId}
+      FOR UPDATE
+    `;
 
-  return getBookingResponseById(bookings[0].id);
+    const session = sessions[0];
+
+    if (!session) {
+      return { outcome: "session_not_found" };
+    }
+
+    let resolvedSlotId = null;
+    let resolvedBookingDate = bookingDate;
+    let resolvedBookingTime = bookingTime;
+
+    if (session.session_type === "group") {
+      if (!sessionSlotId) {
+        return { outcome: "group_slot_required" };
+      }
+
+      const slots = await transaction`
+        SELECT
+          id,
+          session_date::text AS session_date,
+          start_time::text AS start_time
+        FROM session_slots
+        WHERE id = ${sessionSlotId}
+          AND session_id = ${sessionId}
+          AND (
+            session_date > CURRENT_DATE
+            OR (
+              session_date = CURRENT_DATE
+              AND start_time >= LOCALTIME
+            )
+          )
+        FOR UPDATE
+      `;
+
+      const slot = slots[0];
+
+      if (!slot) {
+        return { outcome: "slot_not_found" };
+      }
+
+      resolvedSlotId = slot.id;
+      resolvedBookingDate = slot.session_date;
+      resolvedBookingTime = slot.start_time;
+    } else {
+      if (sessionSlotId) {
+        return { outcome: "individual_slot_not_allowed" };
+      }
+
+      if (!bookingDate || !bookingTime) {
+        return { outcome: "individual_date_time_required" };
+      }
+    }
+
+    const duplicateBookings = await transaction`
+      SELECT id
+      FROM bookings
+      WHERE user_id = ${userId}
+        AND session_id = ${sessionId}
+        AND booking_date = ${resolvedBookingDate}
+        AND booking_time = ${resolvedBookingTime}
+        AND status <> 'cancelled'
+      LIMIT 1
+    `;
+
+    if (duplicateBookings[0]) {
+      return { outcome: "duplicate_booking" };
+    }
+
+    const activeBookings = await transaction`
+      SELECT COUNT(*)::integer AS count
+      FROM bookings
+      WHERE ${
+        session.session_type === "group"
+          ? transaction`session_slot_id = ${resolvedSlotId}`
+          : transaction`
+              session_id = ${sessionId}
+              AND booking_date = ${resolvedBookingDate}
+              AND booking_time = ${resolvedBookingTime}
+            `
+      }
+        AND status <> 'cancelled'
+    `;
+
+    if (activeBookings[0].count >= session.capacity) {
+      return {
+        outcome:
+          session.session_type === "individual"
+            ? "individual_unavailable"
+            : "group_full",
+      };
+    }
+
+    const bookings = await transaction`
+      INSERT INTO bookings (
+        user_id,
+        session_id,
+        session_slot_id,
+        booking_date,
+        booking_time,
+        notes
+      )
+      VALUES (
+        ${userId},
+        ${sessionId},
+        ${resolvedSlotId},
+        ${resolvedBookingDate},
+        ${resolvedBookingTime},
+        ${notes || null}
+      )
+      RETURNING id
+    `;
+
+    return {
+      outcome: "created",
+      bookingId: bookings[0].id,
+    };
+  });
+
+  if (result.outcome !== "created") {
+    return result;
+  }
+
+  return {
+    outcome: result.outcome,
+    booking: await getBookingResponseById(result.bookingId),
+  };
 };
 
 const updateBookingStatus = async ({
@@ -191,8 +289,7 @@ module.exports = {
   getAllBookings,
   getBookingsByUserId,
   findBookingById,
-  findBookingSlot,
-  createBooking,
+  createBookingWithCapacity,
   updateBookingStatus,
   cancelBookingForUser,
 };

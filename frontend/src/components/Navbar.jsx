@@ -55,12 +55,11 @@ function Navbar() {
 
   return (
     <header className="border-b border-fit-border">
-      <div className="fit-navbar mx-auto w-full max-w-7xl px-5 pb-4 pt-8 lg:pb-5 lg:pt-10">
+      <div className="fit-navbar mx-auto w-full max-w-7xl px-5 pb-4 pt-5 lg:pb-5 lg:pt-6">
         <div>
-          <p className="fit-brand-kicker">FitBook</p>
-          <h1 className="text-3xl font-black leading-tight text-zinc-200 sm:text-4xl">
-            Training bookings dashboard
-          </h1>
+          <p className="text-xl font-black uppercase tracking-[0.14em] text-fit-primary sm:text-2xl">
+            FitBook
+          </p>
         </div>
 
         <nav className="fit-nav-tabs" aria-label="Primary navigation">
