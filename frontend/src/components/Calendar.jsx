@@ -97,7 +97,7 @@ function Calendar({ bookings = [], selectedDate = "", onSelectDate }) {
                 ? "bg-fit-sky text-fit-bg"
                 : item.dateString && bookingDates.has(item.dateString)
                   ? "bg-fit-primary text-fit-bg"
-                  : "bg-white/[0.04]"
+                  : "bg-white/4"
             }`}
             disabled={!item.dateString}
             key={item.key}
