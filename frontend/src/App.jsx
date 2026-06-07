@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import AdminRoute from "./components/AdminRoute";
+import Footer from "./components/Footer";
 import AdminPage from "./pages/AdminPage";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -8,10 +9,13 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import SessionsPage from "./pages/SessionsPage";
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import useAuthStore from "./store/useAuthStore";
 
 function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
+  const location = useLocation();
+  const showFooter = !location.pathname.startsWith("/admin");
 
   useEffect(() => {
     checkAuth();
@@ -39,6 +43,8 @@ function App() {
           <Route path="*" element={<Navigate to="/sessions" replace />} />
         </Routes>
       </div>
+
+      {showFooter ? <Footer /> : null}
     </div>
   );
 }
