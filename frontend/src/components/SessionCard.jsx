@@ -1,4 +1,4 @@
-function SessionCard({ session, onBook }) {
+function SessionCard({ session, isAdmin = false, onBook, onEdit, onDelete }) {
   return (
     <article className="fit-card flex flex-col gap-4">
       <div className="flex items-start justify-between gap-4">
@@ -12,7 +12,7 @@ function SessionCard({ session, onBook }) {
         </p>
       </div>
 
-      <div className="mt-auto flex items-center justify-between gap-4">
+      <div className="mt-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="flex items-center gap-3 text-sm fit-text-muted">
           <span>{session.duration_minutes} min</span>
           <span aria-hidden="true">·</span>
@@ -23,13 +23,33 @@ function SessionCard({ session, onBook }) {
           </span>
         </div>
 
-        <button
-          className="fit-btn-primary"
-          type="button"
-          onClick={() => onBook(session)}
-        >
-          Book Session
-        </button>
+        {isAdmin ? (
+          <div className="flex flex-wrap gap-3">
+            <button
+              className="fit-btn-secondary"
+              type="button"
+              onClick={() => onEdit?.(session)}
+            >
+              Edit
+            </button>
+
+            <button
+              className="fit-btn-danger px-5 py-3"
+              type="button"
+              onClick={() => onDelete?.(session)}
+            >
+              Delete
+            </button>
+          </div>
+        ) : (
+          <button
+            className="fit-btn-primary"
+            type="button"
+            onClick={() => onBook(session)}
+          >
+            Book Session
+          </button>
+        )}
       </div>
     </article>
   );
