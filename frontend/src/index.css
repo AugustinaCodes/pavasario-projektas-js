@@ -88,6 +88,30 @@
     @apply h-14 w-full appearance-none rounded-full border border-fit-primary/60 bg-fit-surface-2 px-6 pr-12 text-sm font-black text-fit-text outline-none transition hover:border-fit-primary focus:border-fit-primary focus:ring-2 focus:ring-fit-primary/20;
   }
 
+  .fit-input:is(select),
+  .fit-select {
+    color-scheme: dark;
+  }
+
+  .fit-input:is(select) option,
+  .fit-select option {
+    color: var(--fit-text);
+    background-color: var(--fit-surface-2);
+  }
+
+  .fit-input:is(select) option:disabled,
+  .fit-select option:disabled {
+    color: var(--fit-muted);
+  }
+
+  .fit-booking-select {
+    appearance: none;
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m4 6 4 4 4-4' stroke='%23fff' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+
   .fit-btn-danger {
     @apply rounded-full border border-fit-rose/40 bg-fit-rose/10 font-bold text-fit-rose transition hover:bg-fit-rose/20;
   }

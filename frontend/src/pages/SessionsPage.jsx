@@ -244,7 +244,7 @@ function SessionPage() {
                 <label className="grid gap-2 text-sm font-semibold">
                   Available time
                   <select
-                    className="fit-input max-w-xl"
+                    className="fit-input fit-booking-select max-w-xl"
                     name="session_slot_id"
                     value={bookingForm.session_slot_id}
                     onChange={handleBookingChange}
