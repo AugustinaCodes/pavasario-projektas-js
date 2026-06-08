@@ -107,7 +107,8 @@ const createBookingWithCapacity = async ({
       SELECT
         id,
         session_type,
-        capacity
+        capacity,
+        duration_minutes
       FROM sessions
       WHERE id = ${sessionId}
       FOR UPDATE
@@ -180,28 +181,39 @@ const createBookingWithCapacity = async ({
       return { outcome: "duplicate_booking" };
     }
 
-    const activeBookings = await transaction`
-      SELECT COUNT(*)::integer AS count
-      FROM bookings
-      WHERE ${
-        session.session_type === "group"
-          ? transaction`session_slot_id = ${resolvedSlotId}`
-          : transaction`
-              session_id = ${sessionId}
-              AND booking_date = ${resolvedBookingDate}
-              AND booking_time = ${resolvedBookingTime}
-            `
-      }
-        AND status <> 'cancelled'
-    `;
+    if (session.session_type === "group") {
+      const activeBookings = await transaction`
+        SELECT COUNT(*)::integer AS count
+        FROM bookings
+        WHERE session_slot_id = ${resolvedSlotId}
+          AND status <> 'cancelled'
+      `;
 
-    if (activeBookings[0].count >= session.capacity) {
-      return {
-        outcome:
-          session.session_type === "individual"
-            ? "individual_unavailable"
-            : "group_full",
-      };
+      if (activeBookings[0].count >= session.capacity) {
+        return { outcome: "group_full" };
+      }
+    } else {
+      const overlappingBookings = await transaction`
+        SELECT id
+        FROM bookings b
+        WHERE b.session_id = ${sessionId}
+          AND b.status <> 'cancelled'
+          AND (b.booking_date + b.booking_time) <
+            (
+              ${resolvedBookingDate}::date + ${resolvedBookingTime}::time +
+              (${session.duration_minutes} * INTERVAL '1 minute')
+            )
+          AND (${resolvedBookingDate}::date + ${resolvedBookingTime}::time) <
+            (
+              b.booking_date + b.booking_time +
+              (${session.duration_minutes} * INTERVAL '1 minute')
+            )
+        LIMIT 1
+      `;
+
+      if (overlappingBookings[0]) {
+        return { outcome: "individual_unavailable" };
+      }
     }
 
     const bookings = await transaction`
