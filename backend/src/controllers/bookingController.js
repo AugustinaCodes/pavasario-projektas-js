@@ -101,7 +101,7 @@ const createMyBooking = catchAsync(async (req, res) => {
 
     if (result.outcome === "individual_unavailable") {
       throw new AppError(
-        "This individual session is already booked for the selected time",
+        "This individual session has a conflicting booking time",
         409
       );
     }
