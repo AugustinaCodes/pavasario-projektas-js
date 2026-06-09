@@ -62,8 +62,41 @@ const findUserById = async (id) => {
     return users[0] || null;
 };
 
+const updateUserById = async (id, { name = null, email = null, password = null }) => {
+    const users = await sql`
+    UPDATE users
+    SET
+      name = COALESCE(${name}, name),
+      email = COALESCE(${email}, email),
+      password = COALESCE(${password}, password),
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = ${id}
+    RETURNING
+      id,
+      name,
+      email,
+      role,
+      created_at,
+      updated_at
+  `;
+
+    return users[0] || null;
+};
+
+const deleteUserById = async (id) => {
+    const users = await sql`
+    DELETE FROM users
+    WHERE id = ${id}
+    RETURNING id
+  `;
+
+    return users[0] || null;
+};
+
 module.exports = {
     createUser,
+    deleteUserById,
     findUserByEmail,
     findUserById,
+    updateUserById,
 };

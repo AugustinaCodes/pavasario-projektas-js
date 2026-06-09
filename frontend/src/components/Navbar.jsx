@@ -3,6 +3,7 @@ import useAuthStore from "../store/useAuthStore";
 
 const sessionsItem = { label: "Sessions", to: "/sessions" };
 const bookingsItem = { label: "My bookings", to: "/dashboard" };
+const profileItem = { label: "My profile", to: "/profile" };
 const adminItem = { label: "Admin panel", to: "/admin" };
 
 const guestItems = [
@@ -23,6 +24,7 @@ function Navbar() {
     sessionsItem,
     ...(isAuthenticated && user?.role !== "admin" ? [bookingsItem] : []),
     ...(isAuthenticated && user?.role === "admin" ? [adminItem] : []),
+    ...(isAuthenticated ? [profileItem] : []),
   ];
 
   const visibleItems =
@@ -33,6 +35,10 @@ function Navbar() {
   const activeItem = visibleItems.find(({ to }) => {
     if (to === "/sessions") {
       return location.pathname === "/" || location.pathname === "/sessions";
+    }
+
+    if (to === "/profile") {
+      return location.pathname === "/profile";
     }
 
     return location.pathname === to;

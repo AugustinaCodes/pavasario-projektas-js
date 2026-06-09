@@ -10,6 +10,8 @@ const getErrorData = (error) => {
   };
 };
 
+const getUserFromResponse = (response) => response.data.data.user;
+
 const useAuthStore = create((set) => ({
   user: null,
   isAuthenticated: false,
@@ -22,7 +24,7 @@ const useAuthStore = create((set) => ({
 
     try {
       const response = await api.get("/auth/me");
-      const user = response.data.data.user;
+      const user = getUserFromResponse(response);
 
       set({
         user,
@@ -53,7 +55,7 @@ const useAuthStore = create((set) => ({
 
     try {
       const response = await api.post("/auth/register", credentials);
-      const user = response.data.data.user;
+      const user = getUserFromResponse(response);
 
       set({
         user,
@@ -81,7 +83,7 @@ const useAuthStore = create((set) => ({
 
     try {
       const response = await api.post("/auth/login", credentials);
-      const user = response.data.data.user;
+      const user = getUserFromResponse(response);
 
       set({
         user,
@@ -119,6 +121,61 @@ const useAuthStore = create((set) => ({
       });
 
       return response.data?.message || "You have successfully logged out.";
+    } catch (error) {
+      const errorData = getErrorData(error);
+
+      set({
+        isLoading: false,
+        error: errorData,
+      });
+
+      throw new Error(errorData.message, { cause: error });
+    }
+  },
+
+  updateProfile: async (profileData) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await api.patch("/auth/me", profileData);
+      const user = getUserFromResponse(response);
+
+      set({
+        user,
+        isAuthenticated: true,
+        isLoading: false,
+        hasCheckedAuth: true,
+        error: null,
+      });
+
+      return user;
+    } catch (error) {
+      const errorData = getErrorData(error);
+
+      set({
+        isLoading: false,
+        error: errorData,
+      });
+
+      throw new Error(errorData.message, { cause: error });
+    }
+  },
+
+  deleteAccount: async () => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await api.delete("/auth/me");
+
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        hasCheckedAuth: true,
+        error: null,
+      });
+
+      return response.data?.message || "Your account has been deleted.";
     } catch (error) {
       const errorData = getErrorData(error);
 
