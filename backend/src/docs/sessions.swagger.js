@@ -211,67 +211,65 @@ const sessionsSwagger = {
     },
   },
 
-  components: {
-    schemas: {
-      SessionInput: {
-        type: "object",
-        required: [
-          "title",
-          "description",
-          "price",
-          "duration_minutes",
-          "session_type",
-          "capacity",
-        ],
-        properties: {
-          title: { type: "string", example: "Personal Training" },
-          description: {
-            type: "string",
-            example: "One-on-one training session...",
-          },
-          price: { type: "number", example: 40 },
-          duration_minutes: { type: "integer", example: 60 },
-          session_type: {
-            type: "string",
-            enum: ["individual", "group"],
-            example: "individual",
-          },
-          capacity: { type: "integer", example: 1 },
+  schemas: {
+    SessionInput: {
+      type: "object",
+      required: [
+        "title",
+        "description",
+        "price",
+        "duration_minutes",
+        "session_type",
+        "capacity",
+      ],
+      properties: {
+        title: { type: "string", example: "Personal Training" },
+        description: {
+          type: "string",
+          example: "One-on-one training session...",
         },
+        price: { type: "number", example: 40 },
+        duration_minutes: { type: "integer", example: 60 },
+        session_type: {
+          type: "string",
+          enum: ["individual", "group"],
+          example: "individual",
+        },
+        capacity: { type: "integer", example: 1 },
       },
+    },
 
-      Session: {
-        type: "object",
-        properties: {
-          id: { type: "integer", example: 1 },
-          title: { type: "string", example: "Personal Training" },
-          description: { type: "string" },
-          duration_minutes: { type: "integer", example: 60 },
-          price: { type: "string", example: "40.00" },
-          session_type: {
-            type: "string",
-            enum: ["individual", "group"],
-          },
-          capacity: { type: "integer", example: 1 },
-          slots: {
-            type: "array",
-            items: {
-              $ref: "#/components/schemas/SessionSlot",
-            },
-          },
-          created_at: { type: "string", format: "date-time" },
-          updated_at: { type: "string", format: "date-time" },
+    Session: {
+      type: "object",
+      properties: {
+        id: { type: "integer", example: 1 },
+        title: { type: "string", example: "Personal Training" },
+        description: { type: "string" },
+        duration_minutes: { type: "integer", example: 60 },
+        price: { type: "string", example: "40.00" },
+        session_type: {
+          type: "string",
+          enum: ["individual", "group"],
         },
+        capacity: { type: "integer", example: 1 },
+        slots: {
+          type: "array",
+          items: {
+            $ref: "#/components/schemas/SessionSlot",
+          },
+        },
+        created_at: { type: "string", format: "date-time" },
+        updated_at: { type: "string", format: "date-time" },
       },
+    },
 
-      SessionSlot: {
-        type: "object",
-        properties: {
-          id: { type: "integer", example: 7 },
-          session_date: { type: "string", format: "date" },
-          start_time: { type: "string", example: "18:30:00" },
-          available_places: { type: "integer", example: 15 },
-        },
+    SessionSlot: {
+      type: "object",
+      properties: {
+        id: { type: "integer", example: 7 },
+        session_date: { type: "string", format: "date" },
+        start_time: { type: "string", example: "18:30:00" },
+        available_places: { type: "integer", example: 15 },
       },
     },
   },
