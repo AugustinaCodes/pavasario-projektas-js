@@ -878,65 +878,67 @@ function SessionPage() {
               className="grid gap-4"
               onSubmit={handleBookingSubmit}
             >
-              {selectedSession.session_type === "group" ? (
-                <label className="grid gap-2 text-sm font-semibold">
-                  Available time
-                  <select
-                    className="fit-input fit-booking-select max-w-xl"
-                    name="session_slot_id"
-                    value={bookingForm.session_slot_id}
-                    onChange={handleBookingChange}
-                    required
-                  >
-                    <option value="">Select a session time</option>
-                    {(selectedSession.slots || []).map((slot) => {
-                      const isDisabled =
-                        isPastSlot(slot) || slot.available_places <= 0;
+             {selectedSession.session_type === "group" ? (
+  <label className="grid gap-2 text-sm font-semibold">
+    Available time
+    <select
+      className="fit-input fit-booking-select max-w-xl"
+      name="session_slot_id"
+      value={bookingForm.session_slot_id}
+      onChange={handleBookingChange}
+      required
+    >
+      <option value="">Select a session time</option>
+      {(selectedSession.slots || []).map((slot) => {
+        const isDisabled =
+          isPastSlot(slot) || slot.available_places <= 0;
 
-                      return (
-                        <option
-                          disabled={isDisabled}
-                          key={slot.id}
-                          value={slot.id}
-                        >
-                          {isPastSlot(slot)
-                            ? `${formatSlotLabel(slot)} · ended`
-                            : slot.available_places <= 0
-                              ? `${formatSlotLabel(slot)} · fully booked`
-                              : formatSlotLabel(slot)}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </label>
-              ) : (
-                <>
-                  <label className="grid gap-2 text-sm font-semibold">
-                    Date
-                    <input
-                      className="fit-input"
-                      name="booking_date"
-                      type="date"
-                      min={getTodayDateString()}
-                      value={bookingForm.booking_date}
-                      onChange={handleBookingChange}
-                      required
-                    />
-                  </label>
+        return (
+          <option
+            disabled={isDisabled}
+            key={slot.id}
+            value={slot.id}
+          >
+            {isPastSlot(slot)
+              ? `${formatSlotLabel(slot)} · ended`
+              : slot.available_places <= 0
+                ? `${formatSlotLabel(slot)} · fully booked`
+                : formatSlotLabel(slot)}
+          </option>
+        );
+      })}
+    </select>
+  </label>
+) : (
+  <>
+    <label className="grid gap-2 text-sm font-semibold">
+      Date
+      <input
+        className="fit-input"
+        name="booking_date"
+        type="date"
+        min={getTodayDateString()}
+        value={bookingForm.booking_date}
+        onChange={handleBookingChange}
+        onClick={(event) => event.currentTarget.showPicker?.()}
+        required
+      />
+    </label>
 
-                  <label className="grid gap-2 text-sm font-semibold">
-                    Time
-                    <input
-                      className="fit-input"
-                      name="booking_time"
-                      type="time"
-                      value={bookingForm.booking_time}
-                      onChange={handleBookingChange}
-                      required
-                    />
-                  </label>
-                </>
-              )}
+    <label className="grid gap-2 text-sm font-semibold">
+      Time
+      <input
+        className="fit-input"
+        name="booking_time"
+        type="time"
+        value={bookingForm.booking_time}
+        onChange={handleBookingChange}
+        onClick={(event) => event.currentTarget.showPicker?.()}
+        required
+      />
+    </label>
+  </>
+)}
 
               <label className="grid gap-2 text-sm font-semibold">
                 Notes
