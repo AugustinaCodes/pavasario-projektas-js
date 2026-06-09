@@ -2,8 +2,10 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import AdminRoute from "./components/AdminRoute";
 import Footer from "./components/Footer";
 import AdminPage from "./pages/AdminPage";
+import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -35,11 +37,13 @@ function App() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
 
           <Route element={<AdminRoute />}>
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/sessions" replace />} />

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import useBookingStore from "../store/useBookingStore";
 import Calendar from "../components/Calendar";
+import useBookingStore from "../store/useBookingStore";
 
 const bookingStatuses = ["pending", "confirmed", "completed", "cancelled"];
 
@@ -30,10 +30,11 @@ const getBookingSearchText = (booking) =>
 
 function DashboardPage() {
   const bookings = useBookingStore((state) => state.bookings);
-  const isLoading = useBookingStore((state) => state.isLoading);
+  const bookingsLoading = useBookingStore((state) => state.isLoading);
   const error = useBookingStore((state) => state.error);
   const fetchMyBookings = useBookingStore((state) => state.fetchMyBookings);
   const cancelMyBooking = useBookingStore((state) => state.cancelMyBooking);
+
   const [selectedDate, setSelectedDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -61,23 +62,6 @@ function DashboardPage() {
     selectedDate || searchQuery.trim() || statusFilter !== "all",
   );
 
-  const totalBookings = bookings.length;
-  const pendingBookings = bookings.filter(
-    (booking) => booking.status === "pending",
-  ).length;
-  const confirmedBookings = bookings.filter(
-    (booking) => booking.status === "confirmed",
-  ).length;
-  const completedBookings = bookings.filter(
-    (booking) => booking.status === "completed",
-  ).length;
-
-  const getStatusClassName = (status) =>
-    `fit-status fit-status-${status || "pending"}`;
-
-  const canCancelBooking = (status) =>
-    status === "pending" || status === "confirmed";
-
   const handleResetFilters = () => {
     setSelectedDate("");
     setSearchQuery("");
@@ -96,12 +80,21 @@ function DashboardPage() {
     <main className="fit-page">
       <div className="mx-auto w-full max-w-6xl px-5 py-10">
         <header className="my-8">
-          <h2 className="text-4xl font-black">Your training schedule</h2>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2 className="text-4xl font-black">Your training schedule</h2>
 
-          <p className="mt-3 fit-text-muted">
-            Track your booked sessions, statuses and cancellation options.
-          </p>
+              <p className="mt-3 fit-text-muted">
+                Track your booked sessions, statuses and cancellation options.
+              </p>
+            </div>
+
+            <Link className="fit-btn-primary inline-flex w-fit" to="/analytics">
+              View analytics
+            </Link>
+          </div>
         </header>
+
         <div className="mb-6">
           <Calendar
             bookings={bookings}
@@ -186,36 +179,7 @@ function DashboardPage() {
           </div>
         </section>
 
-        <section className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <article className="fit-panel p-5">
-            <p className="fit-text-muted">Total bookings</p>
-            <strong className="mt-2 block text-3xl font-black">
-              {totalBookings}
-            </strong>
-          </article>
-
-          <article className="fit-panel p-5">
-            <p className="fit-text-muted">Pending</p>
-            <strong className="mt-2 block text-3xl font-black text-fit-amber">
-              {pendingBookings}
-            </strong>
-          </article>
-
-          <article className="fit-panel p-5">
-            <p className="fit-text-muted">Confirmed</p>
-            <strong className="mt-2 block text-3xl font-black text-fit-primary">
-              {confirmedBookings}
-            </strong>
-          </article>
-
-          <article className="fit-panel p-5">
-            <p className="fit-text-muted">Completed</p>
-            <strong className="mt-2 block text-3xl font-black text-fit-sky">
-              {completedBookings}
-            </strong>
-          </article>
-        </section>
-        {isLoading ? (
+        {bookingsLoading ? (
           <section className="fit-panel p-6">
             <p className="fit-text-muted">Loading bookings...</p>
           </section>
@@ -227,7 +191,7 @@ function DashboardPage() {
           </section>
         ) : null}
 
-        {!isLoading && !error && filteredBookings.length === 0 ? (
+        {!bookingsLoading && !error && filteredBookings.length === 0 ? (
           <section className="fit-panel p-8">
             <h2 className="text-2xl font-black">
               {hasActiveFilters
@@ -261,7 +225,7 @@ function DashboardPage() {
           </section>
         ) : null}
 
-        {!isLoading && !error && filteredBookings.length > 0 ? (
+        {!bookingsLoading && !error && filteredBookings.length > 0 ? (
           <section className="grid gap-5 md:grid-cols-2">
             {filteredBookings.map((booking) => (
               <article
@@ -285,10 +249,11 @@ function DashboardPage() {
                     </p>
                   </div>
 
-                  <span className={getStatusClassName(booking.status)}>
+                  <span className={`fit-status fit-status-${booking.status}`}>
                     {booking.status}
                   </span>
                 </div>
+
                 {booking.notes ? (
                   <p className="rounded-fit-md bg-white/[0.04] p-4 fit-text-muted">
                     {booking.notes}
@@ -298,13 +263,15 @@ function DashboardPage() {
                     No notes added.
                   </p>
                 )}
-                {canCancelBooking(booking.status) ? (
+
+                {booking.status === "pending" ||
+                booking.status === "confirmed" ? (
                   <div className="mt-auto">
                     <button
                       className="fit-btn-secondary border-fit-rose/30 text-fit-rose"
                       type="button"
                       onClick={() => handleCancelBooking(booking.id)}
-                      disabled={isLoading}
+                      disabled={bookingsLoading}
                     >
                       Cancel booking
                     </button>

@@ -3,8 +3,10 @@ import useAuthStore from "../store/useAuthStore";
 
 const sessionsItem = { label: "Sessions", to: "/sessions" };
 const bookingsItem = { label: "My bookings", to: "/dashboard" };
+const analyticsItem = { label: "Analytics", to: "/analytics" };
 const profileItem = { label: "My profile", to: "/profile" };
 const adminItem = { label: "Admin panel", to: "/admin" };
+const adminAnalyticsItem = { label: "Analytics", to: "/admin/analytics" };
 
 const guestItems = [
   { label: "Login", to: "/login" },
@@ -24,6 +26,8 @@ function Navbar() {
     sessionsItem,
     ...(isAuthenticated && user?.role !== "admin" ? [bookingsItem] : []),
     ...(isAuthenticated && user?.role === "admin" ? [adminItem] : []),
+    ...(isAuthenticated && user?.role === "admin" ? [adminAnalyticsItem] : []),
+    ...(isAuthenticated && user?.role !== "admin" ? [analyticsItem] : []),
     ...(isAuthenticated ? [profileItem] : []),
   ];
 
@@ -39,6 +43,14 @@ function Navbar() {
 
     if (to === "/profile") {
       return location.pathname === "/profile";
+    }
+
+    if (to === "/analytics") {
+      return location.pathname === "/analytics";
+    }
+
+    if (to === "/admin/analytics") {
+      return location.pathname === "/admin/analytics";
     }
 
     return location.pathname === to;
