@@ -33,7 +33,131 @@ const formatSlotLabel = (slot) => {
 const isPastSlot = (slot) =>
   new Date(`${slot.session_date}T${slot.start_time}`) < new Date();
 
+const CUSTOM_SESSION_TEMPLATE = "custom";
+
+const sessionTemplates = [
+  {
+    value: CUSTOM_SESSION_TEMPLATE,
+    label: "Custom session",
+  },
+  {
+    value: "personal-training",
+    label: "Personal Training",
+    title: "Personal Training",
+    description:
+      "One-on-one training session with a personal coach focused on individual goals, technique and progress.",
+    price: "40",
+    duration_minutes: "60",
+    session_type: "individual",
+    capacity: "1",
+  },
+  {
+    value: "strength-training",
+    label: "Strength Training",
+    title: "Strength Training",
+    description:
+      "Structured strength workout focused on building muscle, improving form and increasing overall power.",
+    price: "35",
+    duration_minutes: "60",
+    session_type: "group",
+    capacity: "12",
+  },
+  {
+    value: "weight-loss-consultation",
+    label: "Weight Loss Consultation",
+    title: "Weight Loss Consultation",
+    description:
+      "Consultation session focused on weight loss goals, training direction and basic nutrition guidance.",
+    price: "30",
+    duration_minutes: "45",
+    session_type: "individual",
+    capacity: "1",
+  },
+  {
+    value: "beginner-gym-introduction",
+    label: "Beginner Gym Introduction",
+    title: "Beginner Gym Introduction",
+    description:
+      "Introductory gym session for beginners covering basic exercises, equipment use and safe training habits.",
+    price: "25",
+    duration_minutes: "45",
+    session_type: "individual",
+    capacity: "1",
+  },
+  {
+    value: "mobility-and-stretching",
+    label: "Mobility and Stretching",
+    title: "Mobility and Stretching",
+    description:
+      "Low-intensity session focused on mobility, flexibility, posture and recovery.",
+    price: "20",
+    duration_minutes: "30",
+    session_type: "group",
+    capacity: "16",
+  },
+  {
+    value: "hiit-circuit",
+    label: "HIIT Circuit",
+    title: "HIIT Circuit",
+    description:
+      "High-intensity interval training combining cardio and full-body strength exercises.",
+    price: "28",
+    duration_minutes: "45",
+    session_type: "group",
+    capacity: "14",
+  },
+  {
+    value: "yoga-flow",
+    label: "Yoga Flow",
+    title: "Yoga Flow",
+    description:
+      "Guided yoga session focused on mobility, balance, breathing and controlled movement.",
+    price: "22",
+    duration_minutes: "60",
+    session_type: "group",
+    capacity: "16",
+  },
+  {
+    value: "boxing-fundamentals",
+    label: "Boxing Fundamentals",
+    title: "Boxing Fundamentals",
+    description:
+      "Beginner-friendly boxing session covering stance, footwork, combinations and conditioning.",
+    price: "32",
+    duration_minutes: "60",
+    session_type: "group",
+    capacity: "10",
+  },
+  {
+    value: "posture-assessment",
+    label: "Posture Assessment",
+    title: "Posture Assessment",
+    description:
+      "Individual posture and movement assessment with personalised exercise recommendations.",
+    price: "30",
+    duration_minutes: "45",
+    session_type: "individual",
+    capacity: "1",
+  },
+  {
+    value: "core-and-stability",
+    label: "Core and Stability",
+    title: "Core and Stability",
+    description:
+      "Group workout focused on core strength, balance and movement control.",
+    price: "24",
+    duration_minutes: "45",
+    session_type: "group",
+    capacity: "12",
+  },
+];
+
+const getTemplateValueForSession = (session = {}) =>
+  sessionTemplates.find((template) => template.title === session.title)?.value ||
+  CUSTOM_SESSION_TEMPLATE;
+
 const getEmptySessionForm = (session = {}) => ({
+  template: getTemplateValueForSession(session),
   title: session.title || "",
   description: session.description || "",
   price:
@@ -44,6 +168,11 @@ const getEmptySessionForm = (session = {}) => ({
     session.duration_minutes !== undefined && session.duration_minutes !== null
       ? String(session.duration_minutes)
       : "",
+  session_type: session.session_type || "individual",
+  capacity:
+    session.capacity !== undefined && session.capacity !== null
+      ? String(session.capacity)
+      : "1",
 });
 
 const validateSessionForm = (formData) => {
@@ -52,6 +181,7 @@ const validateSessionForm = (formData) => {
   const description = formData.description.trim();
   const price = Number(formData.price);
   const durationMinutes = Number(formData.duration_minutes);
+  const capacity = Number(formData.capacity);
 
   if (!title) {
     errors.title = "Session title is required.";
@@ -79,6 +209,24 @@ const validateSessionForm = (formData) => {
     errors.duration_minutes = "Duration must be a whole number.";
   } else if (durationMinutes <= 0) {
     errors.duration_minutes = "Duration must be greater than 0.";
+  }
+
+  if (!["individual", "group"].includes(formData.session_type)) {
+    errors.session_type = "Session type must be individual or group.";
+  }
+
+  if (formData.session_type === "individual" && formData.capacity !== "1") {
+    errors.capacity = "One-to-one sessions must have capacity 1.";
+  }
+
+  if (formData.session_type === "group") {
+    if (formData.capacity === "") {
+      errors.capacity = "Capacity is required for group sessions.";
+    } else if (!Number.isInteger(capacity)) {
+      errors.capacity = "Capacity must be a whole number.";
+    } else if (capacity <= 0) {
+      errors.capacity = "Capacity must be greater than 0.";
+    }
   }
 
   return errors;
@@ -186,10 +334,37 @@ function SessionPage() {
   const handleSessionFormChange = (event) => {
     const { name, value } = event.target;
 
-    setSessionFormData((current) => ({
-      ...current,
-      [name]: value,
-    }));
+    if (name === "template") {
+      const selectedTemplate = sessionTemplates.find(
+        (template) => template.value === value,
+      );
+
+      setSessionFormData((current) => ({
+        ...current,
+        ...(selectedTemplate?.title
+          ? {
+              title: selectedTemplate.title,
+              description: selectedTemplate.description,
+              price: selectedTemplate.price,
+              duration_minutes: selectedTemplate.duration_minutes,
+              session_type: selectedTemplate.session_type,
+              capacity: selectedTemplate.capacity,
+            }
+          : {}),
+        template: value,
+      }));
+    } else if (name === "session_type") {
+      setSessionFormData((current) => ({
+        ...current,
+        session_type: value,
+        capacity: value === "individual" ? "1" : current.capacity,
+      }));
+    } else {
+      setSessionFormData((current) => ({
+        ...current,
+        [name]: value,
+      }));
+    }
 
     if (sessionFormErrors[name]) {
       setSessionFormErrors((current) => ({
@@ -227,6 +402,11 @@ function SessionPage() {
       description: sessionFormData.description.trim(),
       price: Number(sessionFormData.price),
       duration_minutes: Number(sessionFormData.duration_minutes),
+      session_type: sessionFormData.session_type,
+      capacity:
+        sessionFormData.session_type === "individual"
+          ? 1
+          : Number(sessionFormData.capacity),
     };
 
     try {
@@ -489,6 +669,22 @@ function SessionPage() {
               onSubmit={handleSessionSubmit}
             >
               <label className="grid gap-2 text-sm font-semibold">
+                Session template
+                <select
+                  className="fit-input fit-booking-select"
+                  name="template"
+                  value={sessionFormData.template}
+                  onChange={handleSessionFormChange}
+                >
+                  {sessionTemplates.map((template) => (
+                    <option key={template.value} value={template.value}>
+                      {template.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="grid gap-2 text-sm font-semibold">
                 Session title
                 <input
                   className={`fit-input ${
@@ -524,6 +720,57 @@ function SessionPage() {
                   </p>
                 ) : null}
               </label>
+
+              <div
+                className={`grid gap-4 ${
+                  sessionFormData.session_type === "group"
+                    ? "md:grid-cols-2"
+                    : ""
+                }`}
+              >
+                <label className="grid gap-2 text-sm font-semibold">
+                  Session type
+                  <select
+                    className={`fit-input fit-booking-select ${
+                      sessionFormErrors.session_type ? "border-fit-rose" : ""
+                    }`}
+                    name="session_type"
+                    value={sessionFormData.session_type}
+                    onChange={handleSessionFormChange}
+                  >
+                    <option value="individual">Individual / One-to-one</option>
+                    <option value="group">Group</option>
+                  </select>
+                  {sessionFormErrors.session_type ? (
+                    <p className="text-xs leading-5 text-fit-rose">
+                      {sessionFormErrors.session_type}
+                    </p>
+                  ) : null}
+                </label>
+
+                {sessionFormData.session_type === "group" ? (
+                  <label className="grid gap-2 text-sm font-semibold">
+                    Capacity
+                    <input
+                      className={`fit-input ${
+                        sessionFormErrors.capacity ? "border-fit-rose" : ""
+                      }`}
+                      name="capacity"
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={sessionFormData.capacity}
+                      onChange={handleSessionFormChange}
+                      placeholder="12"
+                    />
+                    {sessionFormErrors.capacity ? (
+                      <p className="text-xs leading-5 text-fit-rose">
+                        {sessionFormErrors.capacity}
+                      </p>
+                    ) : null}
+                  </label>
+                ) : null}
+              </div>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="grid gap-2 text-sm font-semibold">

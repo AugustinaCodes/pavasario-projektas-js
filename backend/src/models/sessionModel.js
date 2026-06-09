@@ -97,7 +97,7 @@ const createSession = async ({
 
 const updateSession = async (
   id,
-  { title, description, price, duration_minutes },
+  { title, description, price, duration_minutes, session_type, capacity },
 ) => {
   const updatedSessions = await sql`
     UPDATE sessions
@@ -106,6 +106,8 @@ const updateSession = async (
       description = ${description},
       price = ${price},
       duration_minutes = ${duration_minutes},
+      session_type = ${session_type},
+      capacity = ${capacity},
       updated_at = CURRENT_TIMESTAMP
     WHERE id = ${id}
     RETURNING id
