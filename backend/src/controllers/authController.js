@@ -1,8 +1,22 @@
 const bcrypt = require("bcryptjs");
 const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
-const { createUser, findUserByEmail } = require("../models/userModel");
+const {
+    createUser,
+    deleteUserById,
+    findUserByEmail,
+    updateUserById,
+} = require("../models/userModel");
 const { createSendToken } = require("../utils/jwt");
+
+const clearAuthCookie = (res) => {
+    res.cookie("jwt", "", {
+        expires: new Date(Date.now() + 1000),
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
+    });
+};
 
 const register = catchAsync(async (req, res, next) => {
     const { name, email, password } = req.validated.body;
@@ -61,12 +75,7 @@ const login = catchAsync(async (req, res, next) => {
 });
 
 const logout = (req, res) => {
-    res.cookie("jwt", "", {
-        expires: new Date(Date.now() + 1000),
-        httpOnly: true,
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        secure: process.env.NODE_ENV === "production",
-    });
+    clearAuthCookie(res);
 
     res.status(200).json({
         status: "success",
@@ -83,9 +92,76 @@ const getMe = (req, res) => {
     });
 };
 
+const updateMe = catchAsync(async (req, res) => {
+    const { name, email, currentPassword, password } = req.validated.body;
+
+    if (email && email !== req.user.email) {
+        const existingUser = await findUserByEmail(email);
+
+        if (existingUser && existingUser.id !== req.user.id) {
+            throw new AppError("Email already exists", 409);
+        }
+    }
+
+    let hashedPassword = null;
+
+    if (password) {
+        const storedUser = await findUserByEmail(req.user.email);
+
+        if (!storedUser) {
+            throw new AppError("The user no longer exists", 404);
+        }
+
+        const isCurrentPasswordCorrect = await bcrypt.compare(
+            currentPassword,
+            storedUser.password,
+        );
+
+        if (!isCurrentPasswordCorrect) {
+            throw new AppError("Current password is incorrect", 401);
+        }
+
+        hashedPassword = await bcrypt.hash(password, 12);
+    }
+
+    const updatedUser = await updateUserById(req.user.id, {
+        name: name ?? null,
+        email: email ?? null,
+        password: hashedPassword,
+    });
+
+    if (!updatedUser) {
+        throw new AppError("The user no longer exists", 404);
+    }
+
+    res.status(200).json({
+        status: "success",
+        data: {
+            user: updatedUser,
+        },
+    });
+});
+
+const deleteMe = catchAsync(async (req, res) => {
+    const deletedUser = await deleteUserById(req.user.id);
+
+    if (!deletedUser) {
+        throw new AppError("The user no longer exists", 404);
+    }
+
+    clearAuthCookie(res);
+
+    res.status(200).json({
+        status: "success",
+        message: "Your account has been deleted",
+    });
+});
+
 module.exports = {
+    deleteMe,
+    getMe,
     register,
     login,
     logout,
-    getMe,
+    updateMe,
 };

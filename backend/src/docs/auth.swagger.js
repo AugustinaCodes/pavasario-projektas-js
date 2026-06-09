@@ -114,6 +114,72 @@ const authSwagger = {
           },
         },
       },
+
+      patch: {
+        summary: "Update current authenticated user",
+        tags: ["Auth"],
+        security: [
+          {
+            cookieAuth: [],
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/UpdateProfileRequest",
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Current user updated successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/AuthMeResponse",
+                },
+              },
+            },
+          },
+          400: {
+            description: "Validation failed",
+          },
+          401: {
+            description: "Current password is incorrect",
+          },
+          409: {
+            description: "Email already exists",
+          },
+        },
+      },
+
+      delete: {
+        summary: "Delete current authenticated user",
+        tags: ["Auth"],
+        security: [
+          {
+            cookieAuth: [],
+          },
+        ],
+        responses: {
+          200: {
+            description: "Current user deleted successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/DeleteAccountResponse",
+                },
+              },
+            },
+          },
+          401: {
+            description: "User is not authenticated",
+          },
+        },
+      },
     },
   },
 
@@ -219,6 +285,45 @@ const authSwagger = {
               $ref: "#/components/schemas/User",
             },
           },
+        },
+      },
+    },
+
+    UpdateProfileRequest: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          example: "Lina User",
+        },
+        email: {
+          type: "string",
+          format: "email",
+          example: "lina@example.com",
+        },
+        currentPassword: {
+          type: "string",
+          format: "password",
+          example: "Password123!",
+        },
+        password: {
+          type: "string",
+          format: "password",
+          example: "NewPassword123!",
+        },
+      },
+    },
+
+    DeleteAccountResponse: {
+      type: "object",
+      properties: {
+        status: {
+          type: "string",
+          example: "success",
+        },
+        message: {
+          type: "string",
+          example: "Your account has been deleted",
         },
       },
     },
