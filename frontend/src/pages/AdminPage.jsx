@@ -22,8 +22,11 @@ const getUserName = (booking) =>
 const getUserEmail = (booking) =>
   booking.user?.email || booking.user_email || booking.email || "No email";
 
+const BOOKINGS_PAGE_LIMIT = 10;
+
 function AdminPage() {
   const bookings = useBookingStore((state) => state.bookings);
+  const pagination = useBookingStore((state) => state.allBookingsPagination);
   const bookingsLoading = useBookingStore((state) => state.isLoading);
   const bookingsError = useBookingStore((state) => state.error);
   const fetchAllBookings = useBookingStore((state) => state.fetchAllBookings);
@@ -36,10 +39,11 @@ function AdminPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("upcoming");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetchAllBookings();
-  }, [fetchAllBookings]);
+    fetchAllBookings({ page: currentPage, limit: BOOKINGS_PAGE_LIMIT });
+  }, [currentPage, fetchAllBookings]);
 
   const filteredBookings = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -111,6 +115,16 @@ function AdminPage() {
     } catch {
       // Booking store already saves backend error state.
     }
+  };
+
+  const goToPreviousPage = () => {
+    setCurrentPage((page) => Math.max(page - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((page) =>
+      Math.min(page + 1, pagination.totalPages || page + 1),
+    );
   };
 
   return (
@@ -208,7 +222,9 @@ function AdminPage() {
           </div>
 
           <p className="border-b border-fit-border px-6 py-3 text-sm fit-text-muted">
-            Showing {filteredBookings.length} of {bookings.length} bookings.
+            Loaded {bookings.length} bookings on this page.{" "}
+            {filteredBookings.length} match current page filters. Total bookings:{" "}
+            {pagination.total}.
           </p>
 
           {bookingsLoading ? (
@@ -336,6 +352,30 @@ function AdminPage() {
               </table>
             </div>
           ) : null}
+
+          <div className="flex flex-col gap-3 border-t border-fit-border p-6 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              className="fit-btn-secondary inline-flex justify-center disabled:cursor-not-allowed disabled:opacity-50"
+              type="button"
+              disabled={bookingsLoading || !pagination.hasPreviousPage}
+              onClick={goToPreviousPage}
+            >
+              Previous
+            </button>
+
+            <p className="text-center text-sm font-semibold fit-text-muted">
+              Page {pagination.page} of {pagination.totalPages}
+            </p>
+
+            <button
+              className="fit-btn-secondary inline-flex justify-center disabled:cursor-not-allowed disabled:opacity-50"
+              type="button"
+              disabled={bookingsLoading || !pagination.hasNextPage}
+              onClick={goToNextPage}
+            >
+              Next
+            </button>
+          </div>
         </section>
       </div>
     </main>

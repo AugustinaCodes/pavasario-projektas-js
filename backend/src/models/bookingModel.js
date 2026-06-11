@@ -41,19 +41,42 @@ const adminBookingResponseSelect = sql`
   JOIN sessions s ON s.id = b.session_id
 `;
 
-const getAllBookings = async () => {
+const getAllBookings = async ({ limit, offset }) => {
   return sql`
     ${adminBookingResponseSelect}
     ORDER BY b.booking_date ASC, b.booking_time ASC, b.id ASC
+    LIMIT ${limit}
+    OFFSET ${offset}
   `;
 };
 
-const getBookingsByUserId = async (userId) => {
+const countAllBookings = async () => {
+  const result = await sql`
+    SELECT COUNT(*)::integer AS count
+    FROM bookings
+  `;
+
+  return result[0].count;
+};
+
+const getBookingsByUserId = async (userId, { limit, offset }) => {
   return sql`
     ${bookingResponseSelect}
     WHERE b.user_id = ${userId}
     ORDER BY b.booking_date ASC, b.booking_time ASC, b.id ASC
+    LIMIT ${limit}
+    OFFSET ${offset}
   `;
+};
+
+const countBookingsByUserId = async (userId) => {
+  const result = await sql`
+    SELECT COUNT(*)::integer AS count
+    FROM bookings
+    WHERE user_id = ${userId}
+  `;
+
+  return result[0].count;
 };
 
 const findBookingById = async (id) => {
@@ -298,6 +321,8 @@ const cancelBookingForUser = async ({
 };
 
 module.exports = {
+  countAllBookings,
+  countBookingsByUserId,
   getAllBookings,
   getBookingsByUserId,
   findBookingById,

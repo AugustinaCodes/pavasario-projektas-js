@@ -28,8 +28,11 @@ const getBookingSearchText = (booking) =>
     .join(" ")
     .toLowerCase();
 
+const BOOKINGS_PAGE_LIMIT = 10;
+
 function DashboardPage() {
   const bookings = useBookingStore((state) => state.bookings);
+  const pagination = useBookingStore((state) => state.myBookingsPagination);
   const bookingsLoading = useBookingStore((state) => state.isLoading);
   const error = useBookingStore((state) => state.error);
   const fetchMyBookings = useBookingStore((state) => state.fetchMyBookings);
@@ -38,10 +41,11 @@ function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetchMyBookings();
-  }, [fetchMyBookings]);
+    fetchMyBookings({ page: currentPage, limit: BOOKINGS_PAGE_LIMIT });
+  }, [currentPage, fetchMyBookings]);
 
   const filteredBookings = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -74,6 +78,16 @@ function DashboardPage() {
     } catch {
       // Booking store already keeps the error.
     }
+  };
+
+  const goToPreviousPage = () => {
+    setCurrentPage((page) => Math.max(page - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((page) =>
+      Math.min(page + 1, pagination.totalPages || page + 1),
+    );
   };
 
   return (
@@ -168,7 +182,9 @@ function DashboardPage() {
 
           <div className="mt-4 flex flex-wrap items-center gap-3 text-sm fit-text-muted">
             <span>
-              Showing {filteredBookings.length} of {bookings.length} bookings.
+              Loaded {bookings.length} bookings on this page.{" "}
+              {filteredBookings.length} match current page filters. Total
+              bookings: {pagination.total}.
             </span>
 
             {selectedDate ? (
@@ -279,6 +295,32 @@ function DashboardPage() {
                 ) : null}
               </article>
             ))}
+          </section>
+        ) : null}
+
+        {!bookingsLoading && !error && pagination.total > 0 ? (
+          <section className="fit-panel mt-6 flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              className="fit-btn-secondary inline-flex justify-center disabled:cursor-not-allowed disabled:opacity-50"
+              type="button"
+              disabled={!pagination.hasPreviousPage}
+              onClick={goToPreviousPage}
+            >
+              Previous
+            </button>
+
+            <p className="text-center text-sm font-semibold fit-text-muted">
+              Page {pagination.page} of {pagination.totalPages}
+            </p>
+
+            <button
+              className="fit-btn-secondary inline-flex justify-center disabled:cursor-not-allowed disabled:opacity-50"
+              type="button"
+              disabled={!pagination.hasNextPage}
+              onClick={goToNextPage}
+            >
+              Next
+            </button>
           </section>
         ) : null}
       </div>

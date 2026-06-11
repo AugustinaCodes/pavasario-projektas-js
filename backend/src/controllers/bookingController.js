@@ -1,6 +1,8 @@
 const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
 const {
+  countAllBookings,
+  countBookingsByUserId,
   getAllBookings,
   getBookingsByUserId,
   findBookingById,
@@ -27,23 +29,48 @@ const assertStatusTransition = (booking, allowedStatuses, errorMessage) => {
   }
 };
 
+const getPaginationData = ({ page, limit, total }) => {
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+
+  return {
+    page,
+    limit,
+    total,
+    totalPages,
+    hasNextPage: page < totalPages,
+    hasPreviousPage: page > 1,
+  };
+};
+
 const fetchAllBookings = catchAsync(async (req, res) => {
-  const bookings = await getAllBookings();
+  const { page, limit } = req.validated.query;
+  const offset = (page - 1) * limit;
+  const [bookings, total] = await Promise.all([
+    getAllBookings({ limit, offset }),
+    countAllBookings(),
+  ]);
 
   res.status(200).json({
     status: "success",
     results: bookings.length,
     data: bookings,
+    pagination: getPaginationData({ page, limit, total }),
   });
 });
 
 const fetchMyBookings = catchAsync(async (req, res) => {
-  const bookings = await getBookingsByUserId(req.user.id);
+  const { page, limit } = req.validated.query;
+  const offset = (page - 1) * limit;
+  const [bookings, total] = await Promise.all([
+    getBookingsByUserId(req.user.id, { limit, offset }),
+    countBookingsByUserId(req.user.id),
+  ]);
 
   res.status(200).json({
     status: "success",
     results: bookings.length,
     data: bookings,
+    pagination: getPaginationData({ page, limit, total }),
   });
 });
 

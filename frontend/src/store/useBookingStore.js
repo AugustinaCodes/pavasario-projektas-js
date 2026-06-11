@@ -25,21 +25,41 @@ const getBookingsFromResponse = (response) => {
   return Array.isArray(bookings) ? bookings : [];
 };
 
+const defaultPagination = {
+  page: 1,
+  limit: 10,
+  total: 0,
+  totalPages: 1,
+  hasNextPage: false,
+  hasPreviousPage: false,
+};
+
+const getPaginationFromResponse = (response) =>
+  response.data.pagination || defaultPagination;
+
 const useBookingStore = create((set, get) => ({
   bookings: [],
+  allBookingsPagination: defaultPagination,
+  myBookingsPagination: defaultPagination,
   isLoading: false,
   error: null,
 
   clearError: () => set({ error: null }),
 
-  fetchMyBookings: async () => {
+  fetchMyBookings: async ({ page = 1, limit = 10 } = {}) => {
     set({ isLoading: true, error: null });
 
     try {
-      const response = await api.get("/bookings/me");
+      const response = await api.get("/bookings/me", {
+        params: {
+          page,
+          limit,
+        },
+      });
 
       set({
         bookings: getBookingsFromResponse(response),
+        myBookingsPagination: getPaginationFromResponse(response),
         isLoading: false,
       });
     } catch (error) {
@@ -106,14 +126,20 @@ const useBookingStore = create((set, get) => ({
     }
   },
 
-  fetchAllBookings: async () => {
+  fetchAllBookings: async ({ page = 1, limit = 10 } = {}) => {
     set({ isLoading: true, error: null });
 
     try {
-      const response = await api.get("/bookings");
+      const response = await api.get("/bookings", {
+        params: {
+          page,
+          limit,
+        },
+      });
 
       set({
         bookings: getBookingsFromResponse(response),
+        allBookingsPagination: getPaginationFromResponse(response),
         isLoading: false,
       });
     } catch (error) {
