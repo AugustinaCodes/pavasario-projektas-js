@@ -120,6 +120,92 @@ const updateSession = async (
   return getSessionById(id);
 };
 
+const createSessionSlot = async ({ sessionId, sessionDate, startTime }) => {
+  const result = await sql.begin(async (transaction) => {
+    const sessions = await transaction`
+      SELECT id, session_type
+      FROM sessions
+      WHERE id = ${sessionId}
+    `;
+
+    const session = sessions[0];
+
+    if (!session) {
+      return { outcome: "session_not_found" };
+    }
+
+    if (session.session_type !== "group") {
+      return { outcome: "non_group_session" };
+    }
+
+    await transaction`
+      INSERT INTO session_slots (session_id, session_date, start_time)
+      VALUES (${sessionId}, ${sessionDate}, ${startTime})
+    `;
+
+    return { outcome: "created" };
+  });
+
+  if (result.outcome !== "created") {
+    return result;
+  }
+
+  return {
+    outcome: "created",
+    session: await getSessionById(sessionId),
+  };
+};
+
+const deleteSessionSlot = async ({ sessionId, slotId }) => {
+  const sessions = await sql`
+    SELECT id, session_type
+    FROM sessions
+    WHERE id = ${sessionId}
+  `;
+
+  const session = sessions[0];
+
+  if (!session) {
+    return { outcome: "session_not_found" };
+  }
+
+  if (session.session_type !== "group") {
+    return { outcome: "non_group_session" };
+  }
+
+  const slots = await sql`
+    SELECT id
+    FROM session_slots
+    WHERE id = ${slotId}
+      AND session_id = ${sessionId}
+  `;
+
+  if (!slots[0]) {
+    return { outcome: "slot_not_found" };
+  }
+
+  const bookings = await sql`
+    SELECT COUNT(*)::integer AS count
+    FROM bookings
+    WHERE session_slot_id = ${slotId}
+  `;
+
+  if (bookings[0].count > 0) {
+    return { outcome: "slot_has_bookings" };
+  }
+
+  await sql`
+    DELETE FROM session_slots
+    WHERE id = ${slotId}
+      AND session_id = ${sessionId}
+  `;
+
+  return {
+    outcome: "deleted",
+    session: await getSessionById(sessionId),
+  };
+};
+
 const deleteSession = async (id) => {
   const deletedSessions = await sql`
     DELETE FROM sessions
@@ -131,7 +217,9 @@ const deleteSession = async (id) => {
 };
 
 module.exports = {
+  createSessionSlot,
   createSession,
+  deleteSessionSlot,
   deleteSession,
   getAllSessions,
   getSessionById,

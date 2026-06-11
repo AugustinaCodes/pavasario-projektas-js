@@ -1,7 +1,9 @@
 const express = require("express");
 
 const {
+  createSlotForSession,
   createNewSession,
+  deleteSlotForSession,
   fetchAllSessions,
   fetchSessionById,
   editSession,
@@ -10,7 +12,9 @@ const {
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const validate = require("../middleware/validate");
 const {
+  createSessionSlotSchema,
   createSessionSchema,
+  deleteSessionSlotSchema,
   sessionIdParamSchema,
   updateSessionSchema,
 } = require("../schemas/sessionSchemas");
@@ -26,6 +30,13 @@ router.post(
   validate(createSessionSchema),
   createNewSession,
 );
+router.post(
+  "/:id/slots",
+  protect,
+  restrictTo("admin"),
+  validate(createSessionSlotSchema),
+  createSlotForSession,
+);
 router.patch(
   "/:id",
   protect,
@@ -39,6 +50,13 @@ router.delete(
   restrictTo("admin"),
   validate(sessionIdParamSchema),
   removeSession,
+);
+router.delete(
+  "/:id/slots/:slotId",
+  protect,
+  restrictTo("admin"),
+  validate(deleteSessionSlotSchema),
+  deleteSlotForSession,
 );
 
 module.exports = router;

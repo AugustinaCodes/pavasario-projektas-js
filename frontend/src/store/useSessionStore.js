@@ -89,6 +89,60 @@ const useSessionStore = create((set, get) => ({
     }
   },
 
+  createSessionSlot: async (sessionId, slotData) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await api.post(`/sessions/${sessionId}/slots`, slotData);
+      const updatedSession = getSessionFromResponse(response);
+
+      set({
+        sessions: updatedSession
+          ? updateSessionInList(get().sessions, updatedSession)
+          : get().sessions,
+        isLoading: false,
+      });
+
+      return updatedSession;
+    } catch (error) {
+      const message = getErrorMessage(error);
+
+      set({
+        error: message,
+        isLoading: false,
+      });
+
+      throw new Error(message, { cause: error });
+    }
+  },
+
+  deleteSessionSlot: async (sessionId, slotId) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await api.delete(`/sessions/${sessionId}/slots/${slotId}`);
+      const updatedSession = getSessionFromResponse(response);
+
+      set({
+        sessions: updatedSession
+          ? updateSessionInList(get().sessions, updatedSession)
+          : get().sessions,
+        isLoading: false,
+      });
+
+      return updatedSession;
+    } catch (error) {
+      const message = getErrorMessage(error);
+
+      set({
+        error: message,
+        isLoading: false,
+      });
+
+      throw new Error(message, { cause: error });
+    }
+  },
+
   deleteSession: async (sessionId) => {
     set({ isLoading: true, error: null });
 
