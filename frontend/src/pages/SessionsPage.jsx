@@ -243,6 +243,8 @@ function SessionPage() {
   const createSession = useSessionStore((state) => state.createSession);
   const updateSession = useSessionStore((state) => state.updateSession);
   const deleteSession = useSessionStore((state) => state.deleteSession);
+  const createSessionSlot = useSessionStore((state) => state.createSessionSlot);
+  const deleteSessionSlot = useSessionStore((state) => state.deleteSessionSlot);
   const clearSessionError = useSessionStore((state) => state.clearError);
 
   const createBooking = useBookingStore((state) => state.createBooking);
@@ -262,6 +264,11 @@ function SessionPage() {
   const [sessionToDelete, setSessionToDelete] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [formError, setFormError] = useState("");
+  const [slotForm, setSlotForm] = useState({
+    session_date: "",
+    start_time: "",
+  });
+  const [slotFormError, setSlotFormError] = useState("");
 
   const [bookingForm, setBookingForm] = useState({
     session_slot_id: "",
@@ -306,6 +313,11 @@ function SessionPage() {
     setSelectedSession(null);
     setSuccessMessage("");
     setFormError("");
+    setSlotForm({
+      session_date: "",
+      start_time: "",
+    });
+    setSlotFormError("");
     clearBookingError();
   };
 
@@ -320,6 +332,11 @@ function SessionPage() {
     setSelectedSession(null);
     setSuccessMessage("");
     setFormError("");
+    setSlotForm({
+      session_date: "",
+      start_time: "",
+    });
+    setSlotFormError("");
     clearBookingError();
   };
 
@@ -328,6 +345,11 @@ function SessionPage() {
     setEditingSession(null);
     setSessionFormData(getEmptySessionForm());
     setSessionFormErrors({});
+    setSlotForm({
+      session_date: "",
+      start_time: "",
+    });
+    setSlotFormError("");
     clearSessionError();
   };
 
@@ -454,6 +476,75 @@ function SessionPage() {
     }
   };
 
+  const handleSlotFormChange = (event) => {
+    const { name, value } = event.target;
+
+    setSlotForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+
+    if (slotFormError) {
+      setSlotFormError("");
+    }
+
+    if (error) {
+      clearSessionError();
+    }
+  };
+
+  const handleSlotSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!editingSession || editingSession.session_type !== "group") {
+      return;
+    }
+
+    if (!slotForm.session_date || !slotForm.start_time) {
+      setSlotFormError("Date and time are required.");
+      return;
+    }
+
+    try {
+      const updatedSession = await createSessionSlot(editingSession.id, {
+        session_date: slotForm.session_date,
+        start_time: slotForm.start_time,
+      });
+
+      if (updatedSession) {
+        setEditingSession(updatedSession);
+      }
+
+      setSlotForm({
+        session_date: "",
+        start_time: "",
+      });
+      setSlotFormError("");
+      setSessionMessage("Session slot added successfully.");
+    } catch {
+      setSlotFormError("");
+      // The session store already records the API error state.
+    }
+  };
+
+  const handleDeleteSlot = async (slotId) => {
+    if (!editingSession || editingSession.session_type !== "group") {
+      return;
+    }
+
+    try {
+      const updatedSession = await deleteSessionSlot(editingSession.id, slotId);
+
+      if (updatedSession) {
+        setEditingSession(updatedSession);
+      }
+
+      setSessionMessage("Session slot deleted successfully.");
+    } catch {
+      // The session store already records the API error state.
+    }
+  };
+
   const handleBookSession = (session) => {
     if (!isAuthenticated) {
       navigate("/login", {
@@ -502,6 +593,13 @@ function SessionPage() {
     }
 
     const isGroup = selectedSession.session_type === "group";
+    const groupSlots = selectedSession.slots || [];
+
+    if (isGroup && groupSlots.length === 0) {
+      setSuccessMessage("");
+      setFormError("No scheduled times are available for this group session yet.");
+      return;
+    }
 
     if (isGroup && !bookingForm.session_slot_id) {
       setSuccessMessage("");
@@ -558,6 +656,11 @@ function SessionPage() {
       // Booking store already saves backend error state.
     }
   };
+
+  const canManageSlots =
+    sessionFormMode === "edit" &&
+    editingSession?.session_type === "group" &&
+    sessionFormData.session_type === "group";
 
   return (
     <main className="fit-page">
@@ -818,6 +921,86 @@ function SessionPage() {
                 </label>
               </div>
 
+              {canManageSlots ? (
+                <section className="grid gap-4 rounded-fit-lg border border-fit-border bg-white/[0.03] p-4">
+                  <div>
+                    <h3 className="text-lg font-black">Session slots</h3>
+                    <p className="mt-1 text-sm fit-text-muted">
+                      Add scheduled times for this group session.
+                    </p>
+                  </div>
+
+                  {(editingSession.slots || []).length > 0 ? (
+                    <ul className="grid gap-2">
+                      {editingSession.slots.map((slot) => (
+                        <li
+                          className="flex flex-col gap-3 rounded-fit-md border border-fit-border bg-white/[0.04] px-4 py-3 text-fit-text sm:flex-row sm:items-center sm:justify-between"
+                          key={slot.id}
+                        >
+                          <span className="text-sm font-semibold">
+                            {formatSlotLabel(slot)}
+                          </span>
+                          <button
+                            className="fit-btn-secondary w-full sm:w-auto"
+                            disabled={isLoading}
+                            onClick={() => handleDeleteSlot(slot.id)}
+                            type="button"
+                          >
+                            Delete
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="rounded-fit-md border border-fit-border bg-white/[0.04] px-4 py-3 text-sm fit-text-muted">
+                      No slots have been scheduled for this group session yet.
+                    </p>
+                  )}
+
+                  <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                    <label className="grid gap-2 text-sm font-semibold">
+                      Slot date
+                      <input
+                        className="fit-input"
+                        name="session_date"
+                        type="date"
+                        min={getTodayDateString()}
+                        value={slotForm.session_date}
+                        onChange={handleSlotFormChange}
+                        onClick={(event) => event.currentTarget.showPicker?.()}
+                      />
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-semibold">
+                      Slot time
+                      <input
+                        className="fit-input"
+                        name="start_time"
+                        type="time"
+                        value={slotForm.start_time}
+                        onChange={handleSlotFormChange}
+                        onClick={(event) => event.currentTarget.showPicker?.()}
+                      />
+                    </label>
+
+                    <button
+                      className="fit-btn-primary"
+                      disabled={isLoading}
+                      onClick={handleSlotSubmit}
+                      type="button"
+                    >
+                      Add slot
+                    </button>
+                  </div>
+
+                  {slotFormError ? (
+                    <p className="text-sm font-semibold text-fit-rose">
+                      {slotFormError}
+                    </p>
+                  ) : null}
+                </section>
+              ) : null}
+
               {error ? (
                 <div className="rounded-fit-lg border border-fit-rose/30 bg-fit-rose/10 p-4 text-sm text-fit-rose">
                   <p className="font-bold">{error}</p>
@@ -878,67 +1061,73 @@ function SessionPage() {
               className="grid gap-4"
               onSubmit={handleBookingSubmit}
             >
-             {selectedSession.session_type === "group" ? (
-  <label className="grid gap-2 text-sm font-semibold">
-    Available time
-    <select
-      className="fit-input fit-booking-select max-w-xl"
-      name="session_slot_id"
-      value={bookingForm.session_slot_id}
-      onChange={handleBookingChange}
-      required
-    >
-      <option value="">Select a session time</option>
-      {(selectedSession.slots || []).map((slot) => {
-        const isDisabled =
-          isPastSlot(slot) || slot.available_places <= 0;
+              {selectedSession.session_type === "group" ? (
+                (selectedSession.slots || []).length === 0 ? (
+                  <p className="rounded-fit-lg border border-fit-border bg-white/[0.04] p-4 text-sm font-semibold fit-text-muted">
+                    No scheduled times are available for this group session yet.
+                  </p>
+                ) : (
+                  <label className="grid gap-2 text-sm font-semibold">
+                    Available time
+                    <select
+                      className="fit-input fit-booking-select max-w-xl"
+                      name="session_slot_id"
+                      value={bookingForm.session_slot_id}
+                      onChange={handleBookingChange}
+                      required
+                    >
+                      <option value="">Select a session time</option>
+                      {(selectedSession.slots || []).map((slot) => {
+                        const isDisabled =
+                          isPastSlot(slot) || slot.available_places <= 0;
 
-        return (
-          <option
-            disabled={isDisabled}
-            key={slot.id}
-            value={slot.id}
-          >
-            {isPastSlot(slot)
-              ? `${formatSlotLabel(slot)} · ended`
-              : slot.available_places <= 0
-                ? `${formatSlotLabel(slot)} · fully booked`
-                : formatSlotLabel(slot)}
-          </option>
-        );
-      })}
-    </select>
-  </label>
-) : (
-  <>
-    <label className="grid gap-2 text-sm font-semibold">
-      Date
-      <input
-        className="fit-input"
-        name="booking_date"
-        type="date"
-        min={getTodayDateString()}
-        value={bookingForm.booking_date}
-        onChange={handleBookingChange}
-        onClick={(event) => event.currentTarget.showPicker?.()}
-        required
-      />
-    </label>
+                        return (
+                          <option
+                            disabled={isDisabled}
+                            key={slot.id}
+                            value={slot.id}
+                          >
+                            {isPastSlot(slot)
+                              ? `${formatSlotLabel(slot)} · ended`
+                              : slot.available_places <= 0
+                                ? `${formatSlotLabel(slot)} · fully booked`
+                                : formatSlotLabel(slot)}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </label>
+                )
+              ) : (
+                <>
+                  <label className="grid gap-2 text-sm font-semibold">
+                    Date
+                    <input
+                      className="fit-input"
+                      name="booking_date"
+                      type="date"
+                      min={getTodayDateString()}
+                      value={bookingForm.booking_date}
+                      onChange={handleBookingChange}
+                      onClick={(event) => event.currentTarget.showPicker?.()}
+                      required
+                    />
+                  </label>
 
-    <label className="grid gap-2 text-sm font-semibold">
-      Time
-      <input
-        className="fit-input"
-        name="booking_time"
-        type="time"
-        value={bookingForm.booking_time}
-        onChange={handleBookingChange}
-        onClick={(event) => event.currentTarget.showPicker?.()}
-        required
-      />
-    </label>
-  </>
-)}
+                  <label className="grid gap-2 text-sm font-semibold">
+                    Time
+                    <input
+                      className="fit-input"
+                      name="booking_time"
+                      type="time"
+                      value={bookingForm.booking_time}
+                      onChange={handleBookingChange}
+                      onClick={(event) => event.currentTarget.showPicker?.()}
+                      required
+                    />
+                  </label>
+                </>
+              )}
 
               <label className="grid gap-2 text-sm font-semibold">
                 Notes
@@ -967,7 +1156,11 @@ function SessionPage() {
                 <button
                   className="fit-btn-primary"
                   type="submit"
-                  disabled={isBookingLoading}
+                  disabled={
+                    isBookingLoading ||
+                    (selectedSession.session_type === "group" &&
+                      (selectedSession.slots || []).length === 0)
+                  }
                 >
                   {isBookingLoading ? "Booking..." : "Submit booking"}
                 </button>
