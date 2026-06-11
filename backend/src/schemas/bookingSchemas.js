@@ -66,6 +66,22 @@ const createBookingSchema = z.object({
   }),
 });
 
+const bookingPaginationQuerySchema = z.object({
+  query: z.object({
+    page: z.coerce
+      .number()
+      .int("Page must be an integer")
+      .positive("Page must be a positive number")
+      .default(1),
+    limit: z.coerce
+      .number()
+      .int("Limit must be an integer")
+      .positive("Limit must be a positive number")
+      .max(50, "Limit cannot be greater than 50")
+      .default(10),
+  }),
+});
+
 const bookingIdParamSchema = z.object({
   params: z.object({
     id: z.coerce
@@ -78,6 +94,7 @@ const bookingIdParamSchema = z.object({
 });
 
 module.exports = {
+  bookingPaginationQuerySchema,
   createBookingSchema,
   bookingIdParamSchema,
 };

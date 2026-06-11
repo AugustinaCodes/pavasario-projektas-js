@@ -3,6 +3,7 @@ const express = require("express");
 const validate = require("../middleware/validate");
 const { protect, restrictTo } = require("../middleware/authMiddleware");
 const {
+  bookingPaginationQuerySchema,
   createBookingSchema,
   bookingIdParamSchema,
 } = require("../schemas/bookingSchemas");
@@ -19,8 +20,13 @@ const router = express.Router();
 
 router.use(protect);
 
-router.get("/", restrictTo("admin"), fetchAllBookings);
-router.get("/me", fetchMyBookings);
+router.get(
+  "/",
+  restrictTo("admin"),
+  validate(bookingPaginationQuerySchema),
+  fetchAllBookings
+);
+router.get("/me", validate(bookingPaginationQuerySchema), fetchMyBookings);
 router.post("/", validate(createBookingSchema), createMyBooking);
 router.patch(
   "/:id/confirm",
