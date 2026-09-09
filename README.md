@@ -172,6 +172,21 @@ rebuild the services:
 docker compose up -d --build
 ```
 
+## Frontend Setup
+
+With the API running on port 3000, start the frontend in another terminal:
+
+```bash
+cd frontend
+npm ci
+npm run dev -- --host 127.0.0.1 --port 5174 --strictPort
+```
+
+Open http://127.0.0.1:5174. The Vite development server forwards `/api`
+requests to http://localhost:3000, so the frontend can use a different port.
+For production hosting, configure an equivalent `/api` reverse proxy or set
+`VITE_API_URL` when building and configure the backend `CLIENT_URL` accordingly.
+
 ## Useful Docker Commands
 
 ```bash
